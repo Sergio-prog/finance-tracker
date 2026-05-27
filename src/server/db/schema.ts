@@ -1,0 +1,130 @@
+import {
+  boolean,
+  date,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core'
+
+export const operationType = pgEnum('operation_type', ['expense', 'income'])
+export const subscriptionStatus = pgEnum('subscription_status', [
+  'active',
+  'paused',
+  'cancelled',
+])
+
+export const profiles = pgTable('profiles', {
+  id: uuid('id').primaryKey(),
+  email: text('email').notNull(),
+  displayName: text('display_name'),
+  defaultCurrency: text('default_currency').notNull().default('USD'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
+
+export const categories = pgTable(
+  'categories',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    icon: text('icon').notNull(),
+    type: operationType('type').notNull(),
+    color: text('color').notNull(),
+  },
+  (table) => [
+    uniqueIndex('categories_user_name_type_idx').on(
+      table.userId,
+      table.name,
+      table.type,
+    ),
+  ],
+)
+
+export const transactions = pgTable(
+  'transactions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id').references(() => categories.id, {
+      onDelete: 'set null',
+    }),
+    subscriptionId: uuid('subscription_id'),
+    type: operationType('type').notNull(),
+    amountMinor: integer('amount_minor').notNull(),
+    currency: text('currency').notNull(),
+    operationDate: date('operation_date').notNull(),
+    note: text('note'),
+    labels: jsonb('labels').$type<string[]>().notNull().default([]),
+    photoUrl: text('photo_url'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('transactions_user_date_idx').on(table.userId, table.operationDate),
+  ],
+)
+
+export const subscriptions = pgTable(
+  'subscriptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    categoryId: uuid('category_id').references(() => categories.id, {
+      onDelete: 'set null',
+    }),
+    amountMinor: integer('amount_minor').notNull(),
+    currency: text('currency').notNull(),
+    billingDay: integer('billing_day').notNull(),
+    nextChargeDate: date('next_charge_date').notNull(),
+    status: subscriptionStatus('status').notNull().default('active'),
+    autoCreateTransactions: boolean('auto_create_transactions')
+      .notNull()
+      .default(true),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('subscriptions_user_next_charge_idx').on(
+      table.userId,
+      table.nextChargeDate,
+    ),
+  ],
+)
+
+export const exchangeRates = pgTable('exchange_rates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  baseCurrency: text('base_currency').notNull(),
+  quoteCurrency: text('quote_currency').notNull(),
+  rate: numeric('rate', { precision: 18, scale: 8 }).notNull(),
+  capturedAt: timestamp('captured_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})

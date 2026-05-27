@@ -1,0 +1,28 @@
+export const categoryIconOptions = [
+  '🍜',
+  '🛒',
+  '☕',
+  '🏠',
+  '🧾',
+  '🚕',
+  '⛽',
+  '🫀',
+  '🏝️',
+  '🛍️',
+  '🎁',
+  '📚',
+  '🤖',
+  '🖥️',
+  '💼',
+  '🛠️',
+  '📈',
+  '💝',
+  '🎵',
+  '🎮',
+  '🏋️',
+  '✈️',
+  '💳',
+  '⭐',
+] as const
+
+export const customCategoryColor = '#64748b'

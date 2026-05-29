@@ -24,6 +24,8 @@ export type Transaction = {
   photoUrl?: string | null
 }
 
+export type BillingFrequency = 'monthly' | 'yearly'
+
 export type Subscription = {
   id: string
   name: string
@@ -32,9 +34,21 @@ export type Subscription = {
   currency: string
   billingDay: number
   nextChargeDate: string
+  billingFrequency: BillingFrequency
   status: SubscriptionStatus
   autoCreateTransactions: boolean
   notes?: string | null
+}
+
+export type Label = {
+  id: string
+  name: string
+}
+
+export type Profile = {
+  email: string
+  displayName: string | null
+  defaultCurrency: string
 }
 
 export type ChartPoint = {
@@ -44,7 +58,9 @@ export type ChartPoint = {
 }
 
 export type DashboardData = {
+  profile: Profile
   categories: Category[]
   transactions: Transaction[]
   subscriptions: Subscription[]
+  labels: Label[]
 }

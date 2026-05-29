@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+import { MoreHorizontal } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 
@@ -8,6 +9,11 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import type { ChartConfig } from '@/components/ui/chart'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { itemMotion, listMotion, pageMotion, tapMotion } from './animations'
@@ -22,9 +28,11 @@ const chartConfig = {
 
 type TransactionsPanelProps = {
   transactions: Transaction[]
+  onEdit?: (transaction: Transaction) => void
+  onDelete?: (id: string) => void
 }
 
-export function TransactionsPanel({ transactions }: TransactionsPanelProps) {
+export function TransactionsPanel({ transactions, onEdit, onDelete }: TransactionsPanelProps) {
   const [period, setPeriod] = useState<Period>('month')
   const summary = useMemo(
     () => summarizeTransactions(transactions),
@@ -111,42 +119,73 @@ export function TransactionsPanel({ transactions }: TransactionsPanelProps) {
         {hasTransactions ? (
           transactions.map((transaction, index) => (
             <motion.div key={transaction.id} variants={itemMotion} layout>
-              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
-                <div className="grid size-10 place-items-center rounded-md bg-muted text-lg">
-                  {transaction.categoryIcon}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <p className="truncate font-medium">
-                      {transaction.categoryName}
-                    </p>
-                    {transaction.labels.map((label) => (
-                      <span
-                        key={label}
-                        className="max-w-28 truncate text-xs text-muted-foreground sm:max-w-none"
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="truncate text-sm text-muted-foreground">
-                    {transaction.operationDate}
-                    {transaction.note ? ` · ${transaction.note}` : ''}
-                  </p>
-                </div>
-                <p
-                  className={
-                    transaction.type === 'income'
-                      ? 'max-w-28 truncate text-right text-sm font-semibold text-emerald-700 sm:max-w-none sm:text-base'
-                      : 'max-w-28 truncate text-right text-sm font-semibold sm:max-w-none sm:text-base'
-                  }
+              <div className="group flex items-center gap-1 rounded-md px-2 py-3 transition-colors hover:bg-muted/30">
+                <button
+                  type="button"
+                  className="flex-1 cursor-pointer text-left"
+                  onClick={() => onEdit?.(transaction)}
                 >
-                  {transaction.type === 'income' ? '+' : '-'}
-                  {formatCompactMoney(
-                    transaction.amountMinor,
-                    transaction.currency,
-                  )}
-                </p>
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-md bg-muted text-lg">
+                      {transaction.categoryIcon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <p className="truncate font-medium">
+                          {transaction.categoryName}
+                        </p>
+                        {transaction.labels.map((label) => (
+                          <span
+                            key={label}
+                            className="max-w-28 truncate text-xs text-muted-foreground sm:max-w-none"
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {transaction.operationDate}
+                        {transaction.note ? ` · ${transaction.note}` : ''}
+                      </p>
+                    </div>
+                    <p
+                      className={
+                        transaction.type === 'income'
+                          ? 'shrink-0 text-right text-sm font-semibold text-emerald-700 sm:text-base'
+                          : 'shrink-0 text-right text-sm font-semibold sm:text-base'
+                      }
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}
+                      {formatCompactMoney(
+                        transaction.amountMinor,
+                        transaction.currency,
+                      )}
+                    </p>
+                  </div>
+                </button>
+                {onDelete ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="shrink-0 rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label="More options"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-40 p-1">
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-muted"
+                        onClick={() => onDelete(transaction.id)}
+                      >
+                        Delete
+                      </button>
+                    </PopoverContent>
+                  </Popover>
+                ) : null}
               </div>
               {index < transactions.length - 1 ? <Separator /> : null}
             </motion.div>

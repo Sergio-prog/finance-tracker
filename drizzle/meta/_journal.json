@@ -8,6 +8,20 @@
       "when": 1779666210201,
       "tag": "0000_jazzy_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779666210202,
+      "tag": "0001_bright_rogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779666210203,
+      "tag": "0002_lively_swordsman",
+      "breakpoints": true
     }
   ]
 }

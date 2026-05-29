@@ -19,6 +19,10 @@ export const subscriptionStatus = pgEnum('subscription_status', [
   'paused',
   'cancelled',
 ])
+export const billingFrequency = pgEnum('billing_frequency', [
+  'monthly',
+  'yearly',
+])
 
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(),
@@ -99,6 +103,9 @@ export const subscriptions = pgTable(
     currency: text('currency').notNull(),
     billingDay: integer('billing_day').notNull(),
     nextChargeDate: date('next_charge_date').notNull(),
+    billingFrequency: billingFrequency('billing_frequency')
+      .notNull()
+      .default('monthly'),
     status: subscriptionStatus('status').notNull().default('active'),
     autoCreateTransactions: boolean('auto_create_transactions')
       .notNull()
@@ -116,6 +123,23 @@ export const subscriptions = pgTable(
       table.userId,
       table.nextChargeDate,
     ),
+  ],
+)
+
+export const labels = pgTable(
+  'labels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('labels_user_name_idx').on(table.userId, table.name),
   ],
 )
 

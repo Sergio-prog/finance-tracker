@@ -21,6 +21,7 @@ import { isThemeMode, resolveThemeMode } from './theme'
 import { TransactionsPanel } from './TransactionsPanel'
 import { useFinanceData } from './useFinanceData'
 import type { ThemeMode } from './theme'
+import type { Subscription, Transaction } from '@/server/trpc/types'
 
 const darkModeQuery = '(prefers-color-scheme: dark)'
 
@@ -34,22 +35,30 @@ function getInitialThemeMode(): ThemeMode {
 
 export function FinanceApp() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode)
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null)
   const {
+    profile,
     categories,
     transactions,
     subscriptions,
+    labels,
     isLoading,
     error,
     addTransaction,
+    updateTransaction,
+    deleteTransaction,
     addSubscription,
+    updateSubscription,
+    deleteSubscription,
     addCategory,
+    addLabel,
+    removeLabel,
+    saveProfile,
   } = useFinanceData()
   const labelOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(transactions.flatMap((transaction) => transaction.labels)),
-      ),
-    [transactions],
+    () => labels.map((label) => label.name),
+    [labels],
   )
 
   useEffect(() => {
@@ -101,12 +110,6 @@ export function FinanceApp() {
                 >
                   <Bell />
                 </Button>
-                <OperationDialog
-                  categories={categories}
-                  labelOptions={labelOptions}
-                  onCreate={addTransaction}
-                  onCreateCategory={addCategory}
-                />
               </div>
             </header>
 
@@ -137,7 +140,7 @@ export function FinanceApp() {
                   ) : (
                     <>
                       <TabsContent value="transactions" className="m-0">
-                        <div className="mb-4 flex items-center justify-between md:hidden">
+                        <div className="mb-4 flex items-center justify-between">
                           <p className="flex items-center gap-2 font-medium">
                             <BarChart3 className="size-4" />
                             Transactions
@@ -147,12 +150,21 @@ export function FinanceApp() {
                             labelOptions={labelOptions}
                             onCreate={addTransaction}
                             onCreateCategory={addCategory}
+                            onAddLabel={addLabel}
+                            initial={editingTx}
+                            onUpdate={updateTransaction}
+                            onDelete={deleteTransaction}
+                            onClose={() => setEditingTx(null)}
                           />
                         </div>
                         {error ? (
                           <StatusMessage message={error} />
                         ) : (
-                          <TransactionsPanel transactions={transactions} />
+                          <TransactionsPanel
+                            transactions={transactions}
+                            onEdit={setEditingTx}
+                            onDelete={deleteTransaction}
+                          />
                         )}
                       </TabsContent>
                       <TabsContent value="subscriptions" className="m-0">
@@ -163,6 +175,12 @@ export function FinanceApp() {
                             categories={categories}
                             subscriptions={subscriptions}
                             onCreate={addSubscription}
+                            onCreateCategory={addCategory}
+                            onEdit={setEditingSub}
+                            onDelete={deleteSubscription}
+                            editingSub={editingSub}
+                            onUpdate={updateSubscription}
+                            onCloseDialog={() => setEditingSub(null)}
                           />
                         )}
                       </TabsContent>
@@ -170,6 +188,11 @@ export function FinanceApp() {
                         <SettingsPanel
                           themeMode={themeMode}
                           onThemeModeChange={setThemeMode}
+                          profile={profile}
+                          labels={labels}
+                          onAddLabel={addLabel}
+                          onRemoveLabel={removeLabel}
+                          onSaveProfile={saveProfile}
                         />
                       </TabsContent>
                     </>

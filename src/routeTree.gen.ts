@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrpcSplatRouteImport } from './routes/trpc.$'
+import { Route as ApiCronRouteImport } from './routes/api.cron'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const TrpcSplatRoute = TrpcSplatRouteImport.update({
   path: '/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronRoute = ApiCronRouteImport.update({
+  id: '/api/cron',
+  path: '/api/cron',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/cron': typeof ApiCronRoute
   '/trpc/$': typeof TrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/cron': typeof ApiCronRoute
   '/trpc/$': typeof TrpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/cron': typeof ApiCronRoute
   '/trpc/$': typeof TrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/trpc/$'
+  fullPaths: '/' | '/api/cron' | '/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/trpc/$'
-  id: '__root__' | '/' | '/trpc/$'
+  to: '/' | '/api/cron' | '/trpc/$'
+  id: '__root__' | '/' | '/api/cron' | '/trpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiCronRoute: typeof ApiCronRoute
   TrpcSplatRoute: typeof TrpcSplatRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron': {
+      id: '/api/cron'
+      path: '/api/cron'
+      fullPath: '/api/cron'
+      preLoaderRoute: typeof ApiCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiCronRoute: ApiCronRoute,
   TrpcSplatRoute: TrpcSplatRoute,
 }
 export const routeTree = rootRouteImport

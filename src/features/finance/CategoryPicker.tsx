@@ -12,10 +12,10 @@ import type { Category, OperationType } from '@/server/trpc/types'
 
 type CategoryPickerProps = {
   categories: Category[]
-  type: OperationType
+  type?: OperationType
   selectedCategoryId: string
   onSelect: (categoryId: string) => void
-  onCreateCategory: (input: {
+  onCreateCategory?: (input: {
     name: string
     icon: string
     type: OperationType
@@ -37,14 +37,14 @@ export function CategoryPicker({
 
   async function handleCreateCategory() {
     const trimmedName = name.trim()
-    if (!trimmedName) return
+    if (!trimmedName || !onCreateCategory) return
 
     setIsSaving(true)
     try {
       const created = await onCreateCategory({
         name: trimmedName,
         icon,
-        type,
+        type: type ?? 'expense',
         color: customCategoryColor,
       })
       onSelect(created.id)
@@ -60,15 +60,17 @@ export function CategoryPicker({
     <div className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
         <Label>Category</Label>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => setIsCreating((current) => !current)}
-        >
-          <PlusCircle />
-          New
-        </Button>
+        {type && onCreateCategory ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsCreating((current) => !current)}
+          >
+            <PlusCircle />
+            New
+          </Button>
+        ) : null}
       </div>
 
       <motion.div

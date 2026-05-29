@@ -1,24 +1,18 @@
 import { format } from 'date-fns'
 import {
-  CalendarIcon,
   ChevronRight,
   CircleX,
   ImagePlus,
   MinusCircle,
   PlusCircle,
+  Trash2,
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -36,10 +30,11 @@ import {
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { tapMotion } from './animations'
-import { CategoryPicker } from './CategoryPicker'
+import { CategorySelector } from './CategorySelector'
 import { currencies, getCurrencySymbol } from './currency'
+import { DatePickerRow } from './DatePickerRow'
 import { LabelPicker } from './LabelPicker'
-import type { Category, OperationType } from '@/server/trpc/types'
+import type { Category, OperationType, Transaction } from '@/server/trpc/types'
 
 type OperationDialogProps = {
   categories: Category[]
@@ -60,6 +55,21 @@ type OperationDialogProps = {
     type: OperationType
     color?: string
   }) => Promise<Category>
+  onAddLabel?: (name: string) => void
+  initial?: Transaction
+  onUpdate?: (input: {
+    id: string
+    type?: OperationType
+    categoryId?: string
+    amount?: number
+    currency?: string
+    operationDate?: string
+    note?: string
+    labels?: string[]
+    photoUrl?: string
+  }) => Promise<void>
+  onDelete?: (id: string) => Promise<void>
+  onClose?: () => void
 }
 
 export function OperationDialog({
@@ -67,14 +77,34 @@ export function OperationDialog({
   labelOptions,
   onCreate,
   onCreateCategory,
+  onAddLabel,
+  initial,
+  onUpdate,
+  onDelete,
+  onClose,
 }: OperationDialogProps) {
   const [open, setOpen] = useState(false)
-  const [type, setType] = useState<OperationType>('expense')
-  const [date, setDate] = useState<Date | undefined>(new Date())
-  const [labels, setLabels] = useState<string[]>(['Must haves'])
-  const [currency, setCurrency] = useState('USD')
-  const [selectedCategoryId, setSelectedCategoryId] = useState('')
+  const [type, setType] = useState<OperationType>(initial?.type ?? 'expense')
+  const [date, setDate] = useState<Date | undefined>(
+    initial ? new Date(initial.operationDate) : new Date(),
+  )
+  const [labels, setLabels] = useState<string[]>(initial?.labels ?? ['Must haves'])
+  const [currency, setCurrency] = useState(initial?.currency ?? 'USD')
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    initial?.categoryId ?? '',
+  )
   const [isSaving, setIsSaving] = useState(false)
+  const isEditing = Boolean(initial)
+
+  useEffect(() => {
+    if (!initial) return
+    setOpen(true)
+    setType(initial.type)
+    setDate(new Date(initial.operationDate))
+    setLabels(initial.labels)
+    setCurrency(initial.currency)
+    setSelectedCategoryId(initial.categoryId)
+  }, [initial])
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.type === type),
@@ -101,16 +131,30 @@ export function OperationDialog({
 
     setIsSaving(true)
     try {
-      await onCreate({
-        type,
-        categoryId: selectedCategoryId,
-        amount: Number(form.get('amount') ?? 0),
-        currency,
-        operationDate: format(date ?? new Date(), 'yyyy-MM-dd'),
-        note: String(form.get('note') ?? ''),
-        labels,
-        photoUrl: '',
-      })
+      if (isEditing && onUpdate) {
+        await onUpdate({
+          id: initial.id,
+          type,
+          categoryId: selectedCategoryId,
+          amount: Number(form.get('amount') ?? 0),
+          currency,
+          operationDate: format(date ?? new Date(), 'yyyy-MM-dd'),
+          note: String(form.get('note') ?? ''),
+          labels,
+          photoUrl: '',
+        })
+      } else {
+        await onCreate({
+          type,
+          categoryId: selectedCategoryId,
+          amount: Number(form.get('amount') ?? 0),
+          currency,
+          operationDate: format(date ?? new Date(), 'yyyy-MM-dd'),
+          note: String(form.get('note') ?? ''),
+          labels,
+          photoUrl: '',
+        })
+      }
       setOpen(false)
     } finally {
       setIsSaving(false)
@@ -118,7 +162,7 @@ export function OperationDialog({
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+      <Sheet open={open} onOpenChange={(next) => { setOpen(next); if (!next) onClose?.() }}>
       <SheetTrigger asChild>
         <Button
           size="lg"
@@ -149,34 +193,66 @@ export function OperationDialog({
                 </Button>
               </SheetClose>
               <SheetTitle className="text-center text-xl font-semibold text-primary-foreground">
-                Add transaction
+                {isEditing ? 'Edit transaction' : 'Add transaction'}
               </SheetTitle>
-              <div className="size-10" />
+              {isEditing && onDelete ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-lg"
+                  className="text-destructive/90 hover:bg-black/10 hover:text-destructive"
+                  onClick={() => {
+                    onDelete(initial.id)
+                    setOpen(false)
+                  }}
+                  aria-label="Delete"
+                >
+                  <Trash2 />
+                </Button>
+              ) : (
+                <div className="size-10" />
+              )}
             </SheetHeader>
 
-            <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 pb-7 sm:gap-4 sm:px-5">
-              <div className="grid size-16 place-items-center rounded-full border-2 border-dashed border-primary-foreground/50 text-2xl sm:size-20 sm:text-3xl">
-                {selectedCategory?.icon ?? '•'}
-              </div>
-              <Input
-                name="amount"
-                inputMode="decimal"
-                placeholder="0"
-                required
-                className="h-16 min-w-0 border-0 bg-transparent px-0 text-right text-4xl font-semibold text-primary-foreground shadow-none placeholder:text-primary-foreground/70 focus-visible:ring-0 sm:text-5xl"
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 px-4 pb-6 sm:gap-4 sm:px-5">
+              <CategorySelector
+                categories={filteredCategories}
+                selectedCategoryId={selectedCategoryId}
+                onSelect={setSelectedCategoryId}
+                type={type}
+                onCreateCategory={onCreateCategory}
               />
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="h-12 w-20 rounded-full border-0 bg-black/10 text-primary-foreground sm:w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((item) => (
-                    <SelectItem key={item.code} value={item.code}>
-                      {item.symbol} {item.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid gap-1">
+                <Label className="text-primary-foreground/80 text-xs">Amount</Label>
+                <div className="relative">
+                  <Input
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="0"
+                    required
+                    defaultValue={initial ? String(initial.amountMinor / 100) : undefined}
+                    className="h-12 min-w-0 border-0 bg-transparent pr-16 text-2xl font-semibold text-primary-foreground shadow-none placeholder:text-primary-foreground/60 focus-visible:ring-0 sm:h-14 sm:pr-20 sm:text-3xl [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger className="h-9 w-auto min-w-[3.5rem] rounded-full border-0 bg-black/15 px-2 text-sm font-semibold text-primary-foreground hover:bg-black/25 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue placeholder={getCurrencySymbol(currency)}>
+                          {getCurrencySymbol(currency)}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((item) => (
+                          <SelectItem key={item.code} value={item.code}>
+                            {item.symbol} {item.code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -215,47 +291,19 @@ export function OperationDialog({
                 </Button>
               </div>
 
-              <CategoryPicker
-                categories={filteredCategories}
-                type={type}
-                selectedCategoryId={selectedCategoryId}
-                onSelect={setSelectedCategoryId}
-                onCreateCategory={onCreateCategory}
+              <DatePickerRow
+                date={date}
+                onDateChange={setDate}
+                label="Transaction date"
               />
-
-              <ActionRow
-                icon={<CalendarIcon />}
-                label={date ? format(date, 'PPP') : 'Pick date'}
-              >
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="absolute inset-0 rounded-md text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                      aria-label="Pick transaction date"
-                    >
-                      <span className="sr-only">Pick transaction date</span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Button type="button" variant="ghost" size="icon" tabIndex={-1}>
-                  <ChevronRight />
-                </Button>
-              </ActionRow>
 
               <div className="grid gap-2">
                 <Label>Note</Label>
                 <Textarea
                   name="note"
                   placeholder="Write a note"
-                  className="min-h-20"
+                  defaultValue={initial?.note ?? ''}
+                  className="min-h-24 resize-none"
                 />
               </div>
 
@@ -263,6 +311,7 @@ export function OperationDialog({
                 labels={labels}
                 options={labelOptions}
                 onChange={setLabels}
+                onAddLabel={onAddLabel}
               />
 
               <label className="flex min-h-20 cursor-pointer items-center justify-between rounded-md border border-dashed border-border bg-muted/30 px-4 text-sm text-muted-foreground">
@@ -288,29 +337,11 @@ export function OperationDialog({
               className="h-12 w-full rounded-full"
               disabled={isSaving || !selectedCategoryId}
             >
-              Save {getCurrencySymbol(currency)} transaction
+              {isEditing ? 'Update' : `Save ${getCurrencySymbol(currency)} transaction`}
             </Button>
           </div>
         </form>
       </SheetContent>
     </Sheet>
-  )
-}
-
-function ActionRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="relative grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md bg-muted/30 px-3 py-2">
-      <span className="text-primary">{icon}</span>
-      <span className="min-w-0 truncate text-sm font-medium">{label}</span>
-      {children}
-    </div>
   )
 }

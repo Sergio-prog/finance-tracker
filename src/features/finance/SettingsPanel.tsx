@@ -1,9 +1,11 @@
-import { LogIn, LogOut, Moon, Monitor, Sun } from 'lucide-react'
+import { LogIn, LogOut, Moon, Monitor, PlusCircle, Sun, Tags, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -13,22 +15,35 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { pageMotion, springTransition, tapMotion } from './animations'
+import { itemMotion, listMotion, pageMotion, springTransition, tapMotion } from './animations'
 import { cn } from '@/lib/utils'
 import { currencies } from './currency'
+import type { Label, Profile } from '@/server/trpc/types'
 import type { ThemeMode } from './theme'
 import { supabase } from '@/lib/supabase'
 
 type SettingsPanelProps = {
   themeMode: ThemeMode
   onThemeModeChange: (themeMode: ThemeMode) => void
+  profile: Profile
+  labels: Label[]
+  onAddLabel: (input: { name: string }) => Promise<void>
+  onRemoveLabel: (input: { id: string }) => Promise<void>
+  onSaveProfile: (input: { defaultCurrency?: string }) => Promise<void>
 }
 
 export function SettingsPanel({
   themeMode,
   onThemeModeChange,
+  profile,
+  labels,
+  onAddLabel,
+  onRemoveLabel,
+  onSaveProfile,
 }: SettingsPanelProps) {
   const [user, setUser] = useState<User | null>(null)
+  const [labelDraft, setLabelDraft] = useState('')
+  const [addingLabel, setAddingLabel] = useState(false)
 
   useEffect(() => {
     if (!supabase) return
@@ -57,6 +72,19 @@ export function SettingsPanel({
 
   async function signOut() {
     await supabase?.auth.signOut()
+  }
+
+  async function handleAddLabel() {
+    const name = labelDraft.trim()
+    if (!name) return
+
+    setAddingLabel(true)
+    try {
+      await onAddLabel({ name })
+      setLabelDraft('')
+    } finally {
+      setAddingLabel(false)
+    }
   }
 
   return (
@@ -94,7 +122,10 @@ export function SettingsPanel({
                 Used for summaries and new forms.
               </p>
             </div>
-            <Select defaultValue="USD">
+            <Select
+              value={profile.defaultCurrency}
+              onValueChange={(value) => onSaveProfile({ defaultCurrency: value })}
+            >
               <SelectTrigger className="w-full sm:w-36">
                 <SelectValue />
               </SelectTrigger>
@@ -129,6 +160,71 @@ export function SettingsPanel({
               </p>
             </div>
             <Switch defaultChecked />
+          </div>
+        </div>
+
+        <div className="rounded-md border bg-card p-4">
+          <div className="grid gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Labels</p>
+                <p className="text-sm text-muted-foreground">
+                  Manage your labels. They appear in the add transaction form.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+              <Input
+                value={labelDraft}
+                maxLength={32}
+                placeholder="Add label"
+                onChange={(event) => setLabelDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    handleAddLabel()
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={addingLabel || !labelDraft.trim()}
+                onClick={handleAddLabel}
+              >
+                <PlusCircle />
+                Add
+              </Button>
+            </div>
+            <motion.div
+              className="flex flex-wrap gap-2"
+              variants={listMotion}
+              initial="hidden"
+              animate="show"
+            >
+              {labels.length > 0 ? (
+                labels.map((label) => (
+                  <motion.div key={label.id} variants={itemMotion} layout>
+                    <Badge variant="secondary" className="rounded-full gap-1.5 px-3 py-1">
+                      <Tags className="size-3" />
+                      {label.name}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${label.name}`}
+                        className="ml-0.5 rounded-full hover:bg-muted-foreground/20"
+                        onClick={() => onRemoveLabel({ id: label.id })}
+                      >
+                        <Trash2 className="size-3" />
+                      </button>
+                    </Badge>
+                  </motion.div>
+                ))
+              ) : (
+                <p className="py-3 text-sm text-muted-foreground">
+                  No labels yet. Add your first one.
+                </p>
+              )}
+            </motion.div>
           </div>
         </div>
       </div>

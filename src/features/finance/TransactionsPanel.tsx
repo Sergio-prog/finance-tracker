@@ -1,13 +1,10 @@
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, XAxis, Tooltip } from 'recharts'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 import { MoreHorizontal } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
+import { ChartContainer } from '@/components/ui/chart'
 import type { ChartConfig } from '@/components/ui/chart'
 import {
   Popover,
@@ -22,8 +19,14 @@ import { groupTransactions, summarizeTransactions } from './metrics'
 import type { Period, Transaction } from '@/server/trpc/types'
 
 const chartConfig = {
-  spent: { label: 'Spent', color: 'var(--primary)' },
-  gained: { label: 'Gained', color: 'var(--chart-profit)' },
+  spent: {
+    label: 'Spent',
+    theme: { light: 'hsl(var(--primary))', dark: 'hsl(var(--primary))' },
+  },
+  gained: {
+    label: 'Gained',
+    theme: { light: 'hsl(var(--chart-profit))', dark: 'hsl(var(--chart-profit))' },
+  },
 } satisfies ChartConfig
 
 type TransactionsPanelProps = {
@@ -32,7 +35,11 @@ type TransactionsPanelProps = {
   onDelete?: (id: string) => void
 }
 
-export function TransactionsPanel({ transactions, onEdit, onDelete }: TransactionsPanelProps) {
+export function TransactionsPanel({
+  transactions,
+  onEdit,
+  onDelete,
+}: TransactionsPanelProps) {
   const [period, setPeriod] = useState<Period>('month')
   const summary = useMemo(
     () => summarizeTransactions(transactions),
@@ -51,10 +58,7 @@ export function TransactionsPanel({ transactions, onEdit, onDelete }: Transactio
         <div>
           <p className="text-sm text-muted-foreground">Selected period</p>
           <div className="mt-2 grid grid-cols-2 gap-3 sm:flex">
-            <Metric
-              label="Spent"
-              value={formatMoney(summary.spent, currency)}
-            />
+            <Metric label="Spent" value={formatMoney(summary.spent, currency)} />
             <Metric
               label="Gained"
               value={formatMoney(summary.gained, currency)}
@@ -78,30 +82,90 @@ export function TransactionsPanel({ transactions, onEdit, onDelete }: Transactio
         </Tabs>
       </div>
 
-      <div className="overflow-hidden rounded-md border bg-card p-3">
+      <div className="overflow-hidden rounded-xl border bg-card/60 p-4 shadow-sm backdrop-blur-sm">
         {hasTransactions ? (
           <ChartContainer
             config={chartConfig}
-            className="h-[220px] w-full max-w-full sm:h-[260px]"
+            className="h-[220px] w-full max-w-full sm:h-[280px]"
           >
-            <BarChart data={chartData} accessibilityLayer>
-              <CartesianGrid vertical={false} />
+            <BarChart
+              data={chartData}
+              accessibilityLayer
+              margin={{ top: 12, right: 8, left: 8, bottom: 4 }}
+            >
+              <defs>
+                <linearGradient
+                  id="spentGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.95}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.45}
+                  />
+                </linearGradient>
+                <linearGradient
+                  id="gainedGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="hsl(var(--chart-profit))"
+                    stopOpacity={0.95}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="hsl(var(--chart-profit))"
+                    stopOpacity={0.45}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                vertical={false}
+                stroke="hsl(var(--border) / 0.5)"
+                strokeDasharray="3 3"
+              />
               <XAxis
                 dataKey="label"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
+                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                interval="preserveStartEnd"
+                minTickGap={16}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip
+                content={
+                  <MoneyTooltip currency={currency} />
+                }
+                cursor={{ fill: 'hsl(var(--muted) / 0.35)', radius: 6 }}
+              />
               <Bar
                 dataKey="spent"
-                fill="var(--color-spent)"
-                radius={[4, 4, 0, 0]}
+                fill="url(#spentGradient)"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={28}
+                animationDuration={700}
+                animationBegin={100}
               />
               <Bar
                 dataKey="gained"
-                fill="var(--color-gained)"
-                radius={[4, 4, 0, 0]}
+                fill="url(#gainedGradient)"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={28}
+                animationDuration={700}
+                animationBegin={200}
               />
             </BarChart>
           </ChartContainer>
@@ -214,6 +278,67 @@ function Metric({ label, value }: { label: string; value: string }) {
         {value}
       </p>
     </motion.div>
+  )
+}
+
+function MoneyTooltip({
+  active,
+  payload,
+  label,
+  currency,
+}: {
+  active?: boolean
+  payload?: Array<{
+    name: string
+    value: number
+    color: string
+    dataKey: string
+  }>
+  label?: string
+  currency?: string
+}) {
+  if (!active || !payload?.length) return null
+
+  const safeCurrency = currency ?? 'USD'
+
+  return (
+    <div className="grid min-w-36 gap-1.5 rounded-xl border border-border/60 bg-background/95 px-3 py-2.5 text-xs shadow-xl backdrop-blur-sm">
+      <p className="font-medium text-muted-foreground">{label}</p>
+      <div className="grid gap-1.5">
+        {payload.map((entry) => {
+          const isSpent = entry.dataKey === 'spent'
+          return (
+            <div key={entry.name} className="flex items-center gap-2">
+              <div
+                className="grid size-5 place-items-center rounded-md"
+                style={{
+                  background: isSpent
+                    ? 'hsl(var(--primary) / 0.15)'
+                    : 'hsl(var(--chart-profit) / 0.15)',
+                  color: isSpent ? 'hsl(var(--primary))' : 'hsl(var(--chart-profit))',
+                }}
+              >
+                {isSpent ? (
+                  <TrendingDown className="size-3" />
+                ) : (
+                  <TrendingUp className="size-3" />
+                )}
+              </div>
+              <span className="text-muted-foreground">
+                {isSpent ? 'Spent' : 'Gained'}
+              </span>
+              <span className="ml-auto font-mono font-semibold tabular-nums">
+                {isSpent ? '-' : '+'}
+                {formatCompactMoney(
+                  Math.round(Math.abs(entry.value) * 100),
+                  safeCurrency,
+                )}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

@@ -71,20 +71,25 @@ export function SubscriptionsPanel({
   onUpdate,
   onCloseDialog,
 }: SubscriptionsPanelProps) {
-  const monthly = useMemo(
-    () =>
-      subscriptions
-        .filter((s) => s.status === 'active' && s.billingFrequency === 'monthly')
-        .reduce((sum, s) => sum + s.amountMinor, 0),
-    [subscriptions],
-  )
-  const yearly = useMemo(
-    () =>
-      subscriptions
-        .filter((s) => s.status === 'active' && s.billingFrequency === 'yearly')
-        .reduce((sum, s) => sum + s.amountMinor, 0),
-    [subscriptions],
-  )
+  const monthly = useMemo(() => {
+    const monthlySum = subscriptions
+      .filter((s) => s.status === 'active' && s.billingFrequency === 'monthly')
+      .reduce((sum, s) => sum + s.amountMinor, 0)
+    const yearlySum = subscriptions
+      .filter((s) => s.status === 'active' && s.billingFrequency === 'yearly')
+      .reduce((sum, s) => sum + s.amountMinor, 0)
+    return monthlySum + Math.round(yearlySum / 12)
+  }, [subscriptions])
+
+  const yearly = useMemo(() => {
+    const monthlySum = subscriptions
+      .filter((s) => s.status === 'active' && s.billingFrequency === 'monthly')
+      .reduce((sum, s) => sum + s.amountMinor, 0)
+    const yearlySum = subscriptions
+      .filter((s) => s.status === 'active' && s.billingFrequency === 'yearly')
+      .reduce((sum, s) => sum + s.amountMinor, 0)
+    return yearlySum + monthlySum * 12
+  }, [subscriptions])
   const monthlySubs = useMemo(
     () => subscriptions.filter((s) => s.billingFrequency === 'monthly'),
     [subscriptions],

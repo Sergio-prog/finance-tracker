@@ -17,10 +17,15 @@ import { pageMotion } from './animations'
 import { OperationDialog } from './OperationDialog'
 import { SettingsPanel } from './SettingsPanel'
 import { SubscriptionsPanel } from './SubscriptionsPanel'
-import { isThemeMode, resolveThemeMode } from './theme'
+import {
+  getInitialAccent,
+  getInitialBackground,
+  isThemeMode,
+  resolveThemeMode,
+} from './theme'
 import { TransactionsPanel } from './TransactionsPanel'
 import { useFinanceData } from './useFinanceData'
-import type { ThemeMode } from './theme'
+import type { Accent, Background, ThemeMode } from './theme'
 import type { Subscription, Transaction } from '@/server/trpc/types'
 
 const darkModeQuery = '(prefers-color-scheme: dark)'
@@ -35,6 +40,8 @@ function getInitialThemeMode(): ThemeMode {
 
 export function FinanceApp() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode)
+  const [accent, setAccent] = useState<Accent>(getInitialAccent)
+  const [background, setBackground] = useState<Background>(getInitialBackground)
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [editingSub, setEditingSub] = useState<Subscription | null>(null)
   const {
@@ -79,6 +86,16 @@ export function FinanceApp() {
 
     return () => mediaQuery.removeEventListener('change', applyTheme)
   }, [themeMode])
+
+  useEffect(() => {
+    document.documentElement.dataset.accent = accent
+    window.localStorage.setItem('accent', accent)
+  }, [accent])
+
+  useEffect(() => {
+    document.documentElement.dataset.background = background
+    window.localStorage.setItem('background', background)
+  }, [background])
 
   return (
     <MotionConfig reducedMotion="user">
@@ -188,6 +205,10 @@ export function FinanceApp() {
                         <SettingsPanel
                           themeMode={themeMode}
                           onThemeModeChange={setThemeMode}
+                          accent={accent}
+                          onAccentChange={setAccent}
+                          background={background}
+                          onBackgroundChange={setBackground}
                           profile={profile}
                           labels={labels}
                           onAddLabel={addLabel}

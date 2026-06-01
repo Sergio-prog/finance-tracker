@@ -19,12 +19,17 @@ import { itemMotion, listMotion, pageMotion, springTransition, tapMotion } from 
 import { cn } from '@/lib/utils'
 import { currencies } from './currency'
 import type { Label, Profile } from '@/server/trpc/types'
-import type { ThemeMode } from './theme'
+import type { Accent, Background, ThemeMode } from './theme'
+import { accentLabels, accents, backgrounds } from './theme'
 import { supabase } from '@/lib/supabase'
 
 type SettingsPanelProps = {
   themeMode: ThemeMode
   onThemeModeChange: (themeMode: ThemeMode) => void
+  accent: Accent
+  onAccentChange: (accent: Accent) => void
+  background: Background
+  onBackgroundChange: (background: Background) => void
   profile: Profile
   labels: Label[]
   onAddLabel: (input: { name: string }) => Promise<void>
@@ -35,6 +40,10 @@ type SettingsPanelProps = {
 export function SettingsPanel({
   themeMode,
   onThemeModeChange,
+  accent,
+  onAccentChange,
+  background,
+  onBackgroundChange,
   profile,
   labels,
   onAddLabel,
@@ -138,17 +147,39 @@ export function SettingsPanel({
               </SelectContent>
             </Select>
           </div>
-          <Separator />
           <div className="grid gap-3">
             <div>
               <p className="font-medium">Theme</p>
               <p className="text-sm text-muted-foreground">
-                Choose app appearance for this device.
+                Appearance mode for this device.
               </p>
             </div>
             <ThemeModePicker
               value={themeMode}
               onValueChange={onThemeModeChange}
+            />
+          </div>
+          <Separator />
+          <div className="grid gap-3">
+            <div>
+              <p className="font-medium">Accent color</p>
+              <p className="text-sm text-muted-foreground">
+                Primary accent for buttons, charts, and highlights.
+              </p>
+            </div>
+            <AccentPicker value={accent} onValueChange={onAccentChange} />
+          </div>
+          <Separator />
+          <div className="grid gap-3">
+            <div>
+              <p className="font-medium">Background</p>
+              <p className="text-sm text-muted-foreground">
+                Background style for the app.
+              </p>
+            </div>
+            <BackgroundPicker
+              value={background}
+              onValueChange={onBackgroundChange}
             />
           </div>
           <Separator />
@@ -241,6 +272,124 @@ const themeOptions = [
   label: string
   icon: React.ComponentType<{ className?: string }>
 }[]
+
+const accentColors: Record<Accent, string> = {
+  default: 'oklch(0.58 0.145 58)',
+  emerald: 'oklch(0.55 0.18 155)',
+  sky: 'oklch(0.55 0.16 240)',
+  violet: 'oklch(0.55 0.2 290)',
+  rose: 'oklch(0.55 0.18 360)',
+}
+
+function AccentPicker({
+  value,
+  onValueChange,
+}: {
+  value: Accent
+  onValueChange: (value: Accent) => void
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Accent color"
+      className="grid grid-cols-5 gap-2"
+    >
+      {accents.map((accent) => {
+        const selected = accent === value
+
+        return (
+          <motion.button
+            key={accent}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            className={cn(
+              'flex flex-col items-center gap-1.5 rounded-lg border-2 px-2 py-3 transition-all',
+              selected
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-transparent hover:border-border',
+            )}
+            {...tapMotion}
+            onClick={() => onValueChange(accent)}
+          >
+            <span
+              className="size-6 rounded-full ring-1 ring-inset ring-black/10"
+              style={{ background: accentColors[accent] }}
+            />
+            <span
+              className={cn(
+                'text-xs leading-tight',
+                selected ? 'font-medium text-foreground' : 'text-muted-foreground',
+              )}
+            >
+              {accentLabels[accent]}
+            </span>
+          </motion.button>
+        )
+      })}
+    </div>
+  )
+}
+
+const backgroundHints: Record<Background, { ring: string; label: string }> = {
+  default: { ring: 'bg-gradient-to-b from-primary/40 to-transparent', label: 'Gradient' },
+  subtle: { ring: 'bg-muted-foreground/20', label: 'Solid' },
+  warm: { ring: 'bg-gradient-to-b from-amber-500/30 to-transparent', label: 'Warm' },
+  cool: { ring: 'bg-gradient-to-b from-sky-500/30 to-transparent', label: 'Cool' },
+}
+
+function BackgroundPicker({
+  value,
+  onValueChange,
+}: {
+  value: Background
+  onValueChange: (value: Background) => void
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Background style"
+      className="grid grid-cols-4 gap-2"
+    >
+      {backgrounds.map((bg) => {
+        const selected = bg === value
+        const hint = backgroundHints[bg]
+
+        return (
+          <motion.button
+            key={bg}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            className={cn(
+              'flex flex-col items-center gap-1.5 rounded-lg border-2 bg-card px-2 py-2.5 transition-all',
+              selected
+                ? 'border-primary shadow-sm'
+                : 'border-transparent hover:border-border',
+            )}
+            {...tapMotion}
+            onClick={() => onValueChange(bg)}
+          >
+            <div
+              className={cn(
+                'h-5 w-full rounded-sm ring-1 ring-inset ring-border',
+                hint.ring,
+              )}
+            />
+            <span
+              className={cn(
+                'text-xs leading-tight',
+                selected ? 'font-medium text-foreground' : 'text-muted-foreground',
+              )}
+            >
+              {hint.label}
+            </span>
+          </motion.button>
+        )
+      })}
+    </div>
+  )
+}
 
 function ThemeModePicker({
   value,

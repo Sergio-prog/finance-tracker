@@ -181,7 +181,7 @@ export function SubscriptionsPanel({
                 <CreditCard className="size-5" />
               </div>
               <div>
-                <p className="font-medium">There is no subscriptions yet</p>
+                <p className="font-medium">There are no subscriptions yet</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Add services like music, AI tools, or hosting to track monthly
                   spend.

@@ -39,7 +39,7 @@ export function CategorySelector({
       <SheetTrigger asChild>
         <button
           type="button"
-          className="flex shrink-0 items-center gap-2 rounded-full bg-black/10 px-3 py-2 text-primary-foreground hover:bg-black/20 transition"
+          className="flex shrink-0 items-center gap-2 rounded-full bg-muted px-3 py-2 hover:bg-accent transition"
         >
           <span className="text-lg shrink-0">{selected?.icon ?? '•'}</span>
           <span className="w-16 text-left text-sm font-medium truncate sm:w-20">

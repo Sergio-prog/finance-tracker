@@ -19,14 +19,8 @@ import { groupTransactions, summarizeTransactions } from './metrics'
 import type { Period, Transaction } from '@/server/trpc/types'
 
 const chartConfig = {
-  spent: {
-    label: 'Spent',
-    theme: { light: 'hsl(var(--primary))', dark: 'hsl(var(--primary))' },
-  },
-  gained: {
-    label: 'Gained',
-    theme: { light: 'hsl(var(--chart-profit))', dark: 'hsl(var(--chart-profit))' },
-  },
+  spent: { label: 'Spent', color: 'var(--primary)' },
+  gained: { label: 'Gained', color: 'var(--chart-profit)' },
 } satisfies ChartConfig
 
 type TransactionsPanelProps = {
@@ -91,81 +85,32 @@ export function TransactionsPanel({
             <BarChart
               data={chartData}
               accessibilityLayer
-              margin={{ top: 12, right: 8, left: 8, bottom: 4 }}
+              margin={{ top: 8, right: 4, left: 4, bottom: 4 }}
             >
-              <defs>
-                <linearGradient
-                  id="spentGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.95}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.45}
-                  />
-                </linearGradient>
-                <linearGradient
-                  id="gainedGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor="hsl(var(--chart-profit))"
-                    stopOpacity={0.95}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="hsl(var(--chart-profit))"
-                    stopOpacity={0.45}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                vertical={false}
-                stroke="hsl(var(--border) / 0.5)"
-                strokeDasharray="3 3"
-              />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
                 dataKey="label"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                fontSize={11}
                 interval="preserveStartEnd"
                 minTickGap={16}
               />
-              <Tooltip
-                content={
-                  <MoneyTooltip currency={currency} />
-                }
-                cursor={{ fill: 'hsl(var(--muted) / 0.35)', radius: 6 }}
-              />
+              <Tooltip content={<MoneyTooltip currency={currency} />} />
               <Bar
                 dataKey="spent"
-                fill="url(#spentGradient)"
+                fill="var(--color-spent)"
                 radius={[6, 6, 0, 0]}
                 maxBarSize={28}
                 animationDuration={700}
-                animationBegin={100}
               />
               <Bar
                 dataKey="gained"
-                fill="url(#gainedGradient)"
+                fill="var(--color-gained)"
                 radius={[6, 6, 0, 0]}
                 maxBarSize={28}
                 animationDuration={700}
-                animationBegin={200}
               />
             </BarChart>
           </ChartContainer>
@@ -259,7 +204,7 @@ export function TransactionsPanel({
             className="rounded-md border border-dashed bg-muted/20 p-5 text-sm text-muted-foreground"
             variants={itemMotion}
           >
-            There is no transactions for this period.
+            There are no transactions for this period.
           </motion.div>
         )}
       </motion.div>
@@ -313,9 +258,11 @@ function MoneyTooltip({
                 className="grid size-5 place-items-center rounded-md"
                 style={{
                   background: isSpent
-                    ? 'hsl(var(--primary) / 0.15)'
-                    : 'hsl(var(--chart-profit) / 0.15)',
-                  color: isSpent ? 'hsl(var(--primary))' : 'hsl(var(--chart-profit))',
+                    ? 'color-mix(in oklab, var(--primary) 15%, transparent)'
+                    : 'color-mix(in oklab, var(--chart-profit) 15%, transparent)',
+                  color: isSpent
+                    ? 'var(--primary)'
+                    : 'var(--chart-profit)',
                 }}
               >
                 {isSpent ? (
@@ -362,7 +309,7 @@ function EmptyChart() {
         </div>
         <div>
           <p className="font-medium">
-            There is no transactions for this period
+            There are no transactions for this period
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Add income or expenses and the chart will fill this view.

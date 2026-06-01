@@ -200,16 +200,28 @@ export function FinanceApp() {
                 </section>
               </div>
 
-              <nav className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 px-3 py-2 backdrop-blur lg:hidden">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="transactions">
-                    <ReceiptText />
+              <nav className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden">
+                <TabsList className="grid w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0">
+                  <TabsTrigger
+                    value="transactions"
+                    className="flex-col gap-0.5 py-2 data-[state=active]:bg-background"
+                  >
+                    <ReceiptText className="size-5" />
+                    <span className="text-[10px] leading-tight">Transactions</span>
                   </TabsTrigger>
-                  <TabsTrigger value="subscriptions">
-                    <CreditCard />
+                  <TabsTrigger
+                    value="subscriptions"
+                    className="flex-col gap-0.5 py-2 data-[state=active]:bg-background"
+                  >
+                    <CreditCard className="size-5" />
+                    <span className="text-[10px] leading-tight">Subscriptions</span>
                   </TabsTrigger>
-                  <TabsTrigger value="settings">
-                    <Settings />
+                  <TabsTrigger
+                    value="settings"
+                    className="flex-col gap-0.5 py-2 data-[state=active]:bg-background"
+                  >
+                    <Settings className="size-5" />
+                    <span className="text-[10px] leading-tight">Settings</span>
                   </TabsTrigger>
                 </TabsList>
               </nav>

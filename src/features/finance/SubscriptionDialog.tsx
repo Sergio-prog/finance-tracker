@@ -179,7 +179,7 @@ export function SubscriptionDialog({
                   type="button"
                   variant="ghost"
                   size="icon-lg"
-                  className="text-destructive/90 hover:bg-black/10 hover:text-destructive"
+                  className="text-red-400 hover:bg-black/10 hover:text-red-300"
                   onClick={() => {
                     onDelete(initial.id)
                     setOpen(false)
@@ -192,16 +192,18 @@ export function SubscriptionDialog({
                 <div className="size-10" />
               )}
             </SheetHeader>
+          </div>
 
-            <div className="grid gap-3 px-4 pb-6 sm:px-5">
+          <div className="px-4 pb-6 pt-5 sm:px-5">
+            <div className="grid gap-3">
               <div className="grid gap-1">
-                <span className="text-xs text-primary-foreground/80">Name</span>
+                <Label className="text-xs">Name</Label>
                 <Input
                   name="name"
                   placeholder="GitHub, Spotify, hosting"
                   required
                   defaultValue={initial?.name ?? ''}
-                  className="h-12 border-0 bg-black/10 px-3 text-lg font-semibold text-primary-foreground placeholder:text-primary-foreground/60 focus-visible:ring-0 sm:h-14 sm:text-xl"
+                  className="h-12 px-3 text-lg font-semibold sm:h-14 sm:text-xl"
                 />
               </div>
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 sm:gap-4">
@@ -213,7 +215,7 @@ export function SubscriptionDialog({
                   onCreateCategory={onCreateCategory}
                 />
                 <div className="grid gap-1">
-                  <span className="text-xs text-primary-foreground/80">Amount</span>
+                  <Label className="text-xs">Amount</Label>
                   <div className="relative">
                     <Input
                       name="amount"
@@ -223,11 +225,11 @@ export function SubscriptionDialog({
                       placeholder="0"
                       required
                       defaultValue={initial ? String(initial.amountMinor / 100) : undefined}
-                      className="h-12 border-0 bg-black/10 pr-16 text-2xl font-semibold text-primary-foreground placeholder:text-primary-foreground/60 focus-visible:ring-0 sm:h-14 sm:pr-20 sm:text-3xl [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="h-12 pr-16 text-2xl font-semibold sm:h-14 sm:pr-20 sm:text-3xl [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2">
                       <Select value={currency} onValueChange={setCurrency}>
-                        <SelectTrigger className="h-9 w-auto min-w-[3.5rem] rounded-full border-0 bg-black/15 px-2 text-sm font-semibold text-primary-foreground hover:bg-black/25 focus:ring-0 focus:ring-offset-0">
+                        <SelectTrigger className="h-9 w-auto min-w-[3.5rem] rounded-full px-2 text-sm font-semibold">
                           <SelectValue placeholder={getCurrencySymbol(currency)}>
                             {getCurrencySymbol(currency)}
                           </SelectValue>

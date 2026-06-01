@@ -200,7 +200,7 @@ export function OperationDialog({
                   type="button"
                   variant="ghost"
                   size="icon-lg"
-                  className="text-destructive/90 hover:bg-black/10 hover:text-destructive"
+                  className="text-red-400 hover:bg-black/10 hover:text-red-300"
                   onClick={() => {
                     onDelete(initial.id)
                     setOpen(false)
@@ -213,8 +213,10 @@ export function OperationDialog({
                 <div className="size-10" />
               )}
             </SheetHeader>
+          </div>
 
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 px-4 pb-6 sm:gap-4 sm:px-5">
+          <div className="px-4 pb-6 pt-5 sm:px-5">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 sm:gap-4">
               <CategorySelector
                 categories={filteredCategories}
                 selectedCategoryId={selectedCategoryId}
@@ -223,7 +225,7 @@ export function OperationDialog({
                 onCreateCategory={onCreateCategory}
               />
               <div className="grid gap-1">
-                <Label className="text-primary-foreground/80 text-xs">Amount</Label>
+                <Label className="text-xs">Amount</Label>
                 <div className="relative">
                   <Input
                     name="amount"
@@ -233,11 +235,11 @@ export function OperationDialog({
                     placeholder="0"
                     required
                     defaultValue={initial ? String(initial.amountMinor / 100) : undefined}
-                    className="h-12 min-w-0 border-0 bg-transparent pr-16 text-2xl font-semibold text-primary-foreground shadow-none placeholder:text-primary-foreground/60 focus-visible:ring-0 sm:h-14 sm:pr-20 sm:text-3xl [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    className="h-12 min-w-0 pr-16 text-2xl font-semibold sm:h-14 sm:pr-20 sm:text-3xl [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                   <div className="absolute right-1 top-1/2 -translate-y-1/2">
                     <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger className="h-9 w-auto min-w-[3.5rem] rounded-full border-0 bg-black/15 px-2 text-sm font-semibold text-primary-foreground hover:bg-black/25 focus:ring-0 focus:ring-offset-0">
+                      <SelectTrigger className="h-9 w-auto min-w-[3.5rem] rounded-full px-2 text-sm font-semibold">
                         <SelectValue placeholder={getCurrencySymbol(currency)}>
                           {getCurrencySymbol(currency)}
                         </SelectValue>

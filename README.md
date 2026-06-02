@@ -1,201 +1,200 @@
-Welcome to your new TanStack Start app!
+<div align="center">
+  <img src="public/logo.svg" alt="Ledger logo" width="96" height="96" />
 
-# Getting Started
+  # Ledger
 
-To run this application:
+  **A modern, self-hosted personal finance tracker** — track expenses, income,
+  and subscriptions with beautiful charts and customizable themes.
 
-```bash
-bun install
-bun --bun run dev
+  <p>
+    <a href="#features">Features</a> •
+    <a href="#tech-stack">Tech Stack</a> •
+    <a href="#getting-started">Getting Started</a> •
+    <a href="#project-structure">Structure</a>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/Bun-000?style=flat-square&logo=bun&logoColor=fff" alt="Bun" />
+    <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/TanStack%20Start-FF4154?style=flat-square&logo=reactrouter&logoColor=fff" alt="TanStack Start" />
+    <img src="https://img.shields.io/badge/tRPC-2596BE?style=flat-square&logo=trpc&logoColor=fff" alt="tRPC" />
+    <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=fff" alt="Supabase" />
+    <img src="https://img.shields.io/badge/Drizzle-000?style=flat-square&logo=drizzle&logoColor=C5F74F" alt="Drizzle" />
+    <img src="https://img.shields.io/badge/shadcn%2Fui-000?style=flat-square&logo=shadcnui&logoColor=fff" alt="shadcn/ui" />
+    <img src="https://img.shields.io/badge/license-MIT-8257E5?style=flat-square" alt="MIT License" />
+  </p>
+</div>
+
+<br />
+
+> **Why build yet another finance tracker?** I wanted full control over my data,
+> a beautiful UI that works on both desktop and mobile, and the ability to
+> customize every color and accent. No subscriptions, totally free.
+
+<br />
+
+<p align="center">
+  <img src="public/logo.svg" alt="Ledger" width="48" height="48"/>
+</p>
+
+> **Screenshot coming soon** — run the project locally to see it in action.
+<p align="center">
+  <img src="public/app-screenshot.png" alt="screenshot of app" />
+</p>
+
+<p align="center">
+  <sub>
+    <a href="#getting-started">✨ Run Locally</a> •
+    <a href="#features">📋 Features</a> •
+    <a href="#tech-stack">🛠️ Tech Stack</a>
+  </sub>
+</p>
+
+---
+
+## Features
+
+<dl>
+  <dt>📊 Transaction Tracking</dt>
+  <dd>Log expenses and income with categories, labels, notes, and multi-currency support. Edit or delete entries after the fact.</dd>
+
+  <dt>🔄 Subscription Manager</dt>
+  <dd>Track recurring bills — monthly and yearly subscriptions with billing cycles, status tracking (active / paused / cancelled), and automatic transaction generation.</dd>
+
+  <dt>📈 Interactive Charts</dt>
+  <dd>Visualize spending habits with Recharts-powered charts, gradient fills, and custom tooltips. Group by time buckets (daily, weekly, monthly, yearly).</dd>
+
+  <dt>🎨 Customizable Themes</dt>
+  <dd>Choose from 5 accent colors (Amber, Emerald, Sky, Violet, Rose) and 4 background styles (Gradient, Subtle, Warm glow, Cool tones). Light / dark / system mode.</dd>
+
+  <dt>🏷️ Labels & Categories</dt>
+  <dd>Organize transactions with custom categories (each with its own icon and color) and freeform labels for cross-cutting tags.</dd>
+
+  <dt>📱 Mobile-First UI</dt>
+  <dd>Responsive layout with a bottom navigation bar on mobile and a sidebar on desktop. Designed to work as a PWA — add it to your home screen.</dd>
+
+  <dt>🔐 Self-Hosted & Private</dt>
+  <dd>Your data stays in your Supabase instance. Authentication via Google OAuth. No third-party analytics or tracking.</dd>
+</dl>
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Runtime** | [Bun](https://bun.sh/) |
+| **Framework** | [TanStack Start](https://tanstack.com/start/latest) (React 19 + SSR) |
+| **Routing** | [TanStack Router](https://tanstack.com/router/latest) (file-based) |
+| **Data Fetching** | [TanStack Query](https://tanstack.com/query/latest) |
+| **API Layer** | [tRPC](https://trpc.io/) |
+| **ORM** | [Drizzle ORM](https://orm.drizzle.team/) |
+| **Database / Auth** | [Supabase](https://supabase.com/) (PostgreSQL + Google OAuth) |
+| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) |
+| **Charts** | [Recharts](https://recharts.org/) |
+| **Icons** | [Lucide](https://lucide.dev/) + [Phosphor](https://phosphoricons.com/) |
+| **Animation** | [Motion](https://motion.dev/) (formerly Framer Motion) |
+| **Typography** | [Manrope Variable](https://fontsource.org/fonts/manrope-variable) |
+
+## Getting Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) v1.2+
+- A [Supabase](https://supabase.com/) project (free tier works great)
+- A Google OAuth app configured in your Supabase dashboard
+
+### Setup
+
+1. **Clone and install**
+
+   ```bash
+   git clone https://github.com/Sergio-prog/finance-tracker.git
+   cd finance-tracker
+   bun install
+   ```
+
+2. **Configure environment variables**
+
+   Copy the example env file and fill in your Supabase credentials:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   ```env
+   DATABASE_URL="postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres"
+   SUPABASE_URL="https://your-project-ref.supabase.co"
+   SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+   VITE_SUPABASE_URL="https://your-project-ref.supabase.co"
+   VITE_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+   ```
+
+3. **Run database migrations**
+
+   ```bash
+   bun run db:migrate
+   ```
+
+4. **Start the development server**
+
+   ```bash
+   bun run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) — sign in with Google and start tracking.
+
+### Scripts
+
+| Command | Description |
+|---------|-------------|
+| `bun run dev` | Start the dev server on port 3000 |
+| `bun run build` | Build for production |
+| `bun run preview` | Preview the production build |
+| `bun run db:generate` | Generate a new Drizzle migration |
+| `bun run db:migrate` | Apply pending migrations |
+| `bun run lint` | Lint with ESLint |
+| `bun run format` | Format with Prettier |
+| `bun run test` | Run tests with Vitest |
+| `bun run seed` | Seed demo transactions (`--email user@… --months 6 --count 80`) |
+| `bun run seed:dry` | Dry run — preview without inserting |
+
+## Project Structure
+
+```
+src/
+├── components/ui/       # shadcn/ui components (button, dialog, tabs, etc.)
+├── features/finance/    # Core finance app (dialogs, panels, charts, themes)
+├── lib/                 # Utilities (Supabase client, Tailwind helpers)
+├── routes/              # File-based TanStack Router routes
+├── scripts/            # Utility scripts (seed-transactions.ts)
+├── server/
+│   ├── db/              # Drizzle schema and database client
+│   └── trpc/            # tRPC router, validators, repository
+├── router.tsx           # Router configuration
+├── routeTree.gen.ts     # Auto-generated route tree
+└── styles.css           # Global styles + theme variables
 ```
 
-# Building For Production
+## Roadmap
 
-To build this application for production:
+Some ideas for where this could go next:
 
-```bash
-bun --bun run build
-```
+- [ ] Receipt photo uploads (already in the schema)
+- [ ] Recurring transaction templates
+- [ ] Budgets and spending limits
+- [ ] Multi-currency exchange rate auto-fetch
+- [ ] CSV/OFX import and export
+- [ ] Shared/family accounts
+- [ ] Push notifications for upcoming bills
 
-## Testing
+*This is a hobby project — contributions and ideas are always welcome!*
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+## License
 
-```bash
-bun --bun run test
-```
+[MIT](LICENSE) © 2026 Sergio-prog
 
-## Styling
+---
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
-
-## Linting & Formatting
-
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
-
-```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
-```
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from '@tanstack/react-router'
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+<div align="center">
+  <sub>Built with ☕ and curiosity.</sub>
+</div>

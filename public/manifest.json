@@ -1,6 +1,7 @@
 {
   "short_name": "Ledger",
   "name": "Ledger Finance Tracker",
+  "description": "A modern, self-hosted personal finance tracker — track expenses, income, and subscriptions.",
   "icons": [
     {
       "src": "favicon.ico",

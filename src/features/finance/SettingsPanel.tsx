@@ -1,4 +1,4 @@
-import { LogIn, LogOut, Moon, Monitor, PlusCircle, Sun, Tags, Trash2 } from 'lucide-react'
+import { Copy, Key, LogIn, LogOut, Moon, Monitor, PlusCircle, RefreshCw, Shield, Sun, Tags, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
@@ -22,6 +22,7 @@ import type { Label, Profile } from '@/server/trpc/types'
 import type { Accent, Background, ThemeMode } from './theme'
 import { accentLabels, accents, backgrounds } from './theme'
 import { supabase } from '@/lib/supabase'
+import type { ApiKeyInfo } from './useFinanceData'
 
 type SettingsPanelProps = {
   themeMode: ThemeMode
@@ -35,6 +36,9 @@ type SettingsPanelProps = {
   onAddLabel: (input: { name: string }) => Promise<void>
   onRemoveLabel: (input: { id: string }) => Promise<void>
   onSaveProfile: (input: { defaultCurrency?: string }) => Promise<void>
+  apiKeyInfo: ApiKeyInfo | null
+  onRegenerateApiKey: () => Promise<{ apiKey: string; prefix: string }>
+  onRevokeApiKey: () => Promise<void>
 }
 
 export function SettingsPanel({
@@ -49,10 +53,16 @@ export function SettingsPanel({
   onAddLabel,
   onRemoveLabel,
   onSaveProfile,
+  apiKeyInfo,
+  onRegenerateApiKey,
+  onRevokeApiKey,
 }: SettingsPanelProps) {
   const [user, setUser] = useState<User | null>(null)
   const [labelDraft, setLabelDraft] = useState('')
   const [addingLabel, setAddingLabel] = useState(false)
+  const [apiKeyReveal, setApiKeyReveal] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [apiKeyLoading, setApiKeyLoading] = useState(false)
 
   useEffect(() => {
     if (!supabase) return
@@ -94,6 +104,34 @@ export function SettingsPanel({
     } finally {
       setAddingLabel(false)
     }
+  }
+
+  async function handleRegenerateApiKey() {
+    setApiKeyLoading(true)
+    try {
+      const result = await onRegenerateApiKey()
+      setApiKeyReveal(result.apiKey)
+      setCopied(false)
+    } finally {
+      setApiKeyLoading(false)
+    }
+  }
+
+  async function handleRevokeApiKey() {
+    setApiKeyLoading(true)
+    try {
+      await onRevokeApiKey()
+      setApiKeyReveal(null)
+    } finally {
+      setApiKeyLoading(false)
+    }
+  }
+
+  async function handleCopyKey() {
+    if (!apiKeyReveal) return
+    await navigator.clipboard.writeText(apiKeyReveal)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -256,6 +294,97 @@ export function SettingsPanel({
                 </p>
               )}
             </motion.div>
+          </div>
+        </div>
+
+        <div className="rounded-md border bg-card p-4">
+          <div className="grid gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">API Key</p>
+                <p className="text-sm text-muted-foreground">
+                  Give this key to agents or integrations.
+                </p>
+              </div>
+              <Shield className="size-4 text-muted-foreground" />
+            </div>
+
+            {apiKeyReveal ? (
+              <div className="grid gap-3">
+                <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-700">
+                  Copy this key now — you will not be able to see it again.
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={apiKeyReveal}
+                    readOnly
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyKey}
+                  >
+                    {copied ? <span className="text-xs">✓</span> : <Copy className="size-4" />}
+                  </Button>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setApiKeyReveal(null)}
+                >
+                  <Key className="size-4" />
+                  Hide key
+                </Button>
+              </div>
+            ) : apiKeyInfo?.prefix ? (
+              <div className="grid gap-3">
+                <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2">
+                  <Key className="size-4 text-muted-foreground" />
+                  <span className="font-mono text-sm">
+                    {apiKeyInfo.prefix}••••••••••••••••••••••••••••••••••
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={apiKeyLoading}
+                    onClick={handleRegenerateApiKey}
+                    className="flex-1"
+                  >
+                    <RefreshCw className="size-4" />
+                    Regenerate
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={apiKeyLoading}
+                    onClick={handleRevokeApiKey}
+                    className="flex-1"
+                  >
+                    <Trash2 className="size-4" />
+                    Revoke
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                <p className="text-sm text-muted-foreground">
+                  No API key active. Generate one to let agents access your data.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={apiKeyLoading}
+                  onClick={handleRegenerateApiKey}
+                >
+                  <Key className="size-4" />
+                  Generate API key
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -11,8 +11,14 @@ import type {
 import { supabase } from '@/lib/supabase'
 import { trpc } from '@/trpc/client'
 
+export type ApiKeyInfo = {
+  prefix: string | null
+  createdAt: Date | null
+}
+
 export function useFinanceData() {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [apiKeyInfo, setApiKeyInfo] = useState<ApiKeyInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,11 +30,18 @@ export function useFinanceData() {
       setError(null)
 
       try {
-        const dashboard = await trpc.dashboard.query()
-        if (isMounted) setData(dashboard)
+        const [dashboard, keyInfo] = await Promise.all([
+          trpc.dashboard.query(),
+          trpc.getApiKey.query().catch(() => ({ prefix: null, createdAt: null })),
+        ])
+        if (isMounted) {
+          setData(dashboard)
+          setApiKeyInfo(keyInfo)
+        }
       } catch (cause) {
         if (isMounted) {
           setData(null)
+          setApiKeyInfo(null)
           setError(cause instanceof Error ? cause.message : 'Load failed')
         }
       } finally {
@@ -166,6 +179,16 @@ export function useFinanceData() {
           current ? { ...current, profile: updated } : current,
         )
       },
+      regenerateApiKey: async () => {
+        const result = await trpc.regenerateApiKey.mutate()
+        const info = await trpc.getApiKey.query()
+        setApiKeyInfo(info)
+        return result
+      },
+      revokeApiKey: async () => {
+        await trpc.revokeApiKey.mutate()
+        setApiKeyInfo({ prefix: null, createdAt: null })
+      },
     }),
     [],
   )
@@ -176,6 +199,7 @@ export function useFinanceData() {
     transactions: data?.transactions ?? ([] as Transaction[]),
     subscriptions: data?.subscriptions ?? ([] as Subscription[]),
     labels: data?.labels ?? ([] as Label[]),
+    apiKeyInfo,
     isLoading,
     error,
     ...actions,

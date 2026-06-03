@@ -1,6 +1,17 @@
 import { getCurrencySymbol } from './currency'
 
+function lessThanOneLabel(currency: string): string {
+  const symbol = getCurrencySymbol(currency)
+  return `<${symbol}1`
+}
+
 export function formatMoney(amountMinor: number, currency: string) {
+  const abs = Math.abs(amountMinor)
+  if (abs > 0 && abs < 100) {
+    const sign = amountMinor < 0 ? '-' : ''
+    return `${sign}${lessThanOneLabel(currency)}`
+  }
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
@@ -9,7 +20,14 @@ export function formatMoney(amountMinor: number, currency: string) {
 }
 
 export function formatCompactMoney(amountMinor: number, currency: string) {
-  return `${getCurrencySymbol(currency)}${new Intl.NumberFormat('en-US', {
+  const abs = Math.abs(amountMinor)
+  if (abs > 0 && abs < 100) {
+    const sign = amountMinor < 0 ? '-' : ''
+    return `${sign}${lessThanOneLabel(currency)}`
+  }
+
+  const symbol = getCurrencySymbol(currency)
+  return `${symbol}${new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0,
   }).format(amountMinor / 100)}`
 }

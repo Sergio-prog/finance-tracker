@@ -1,8 +1,11 @@
+import { createHash, randomBytes } from 'node:crypto'
+
 import { and, desc, eq, lte } from 'drizzle-orm'
 import { TRPCError } from '@trpc/server'
 
 import { db, hasDatabase } from '../db/client'
 import {
+  apiKeys as apiKeysTable,
   billingFrequency as billingFrequencyEnum,
   categories as categoriesTable,
   labels as labelsTable,
@@ -696,4 +699,95 @@ export async function deleteSubscription(user: AuthUser, subscriptionId: string)
     .where(
       and(eq(subscriptionsTable.id, subscriptionId), eq(subscriptionsTable.userId, user.id)),
     )
+}
+
+function generateApiKey(): { plaintext: string; hash: string; prefix: string } {
+  const plaintext = `ft_${randomBytes(24).toString('base64url')}`
+  const hash = createHash('sha256').update(plaintext).digest('hex')
+  const prefix = plaintext.slice(0, 10)
+  return { plaintext, hash, prefix }
+}
+
+export async function getApiKeyInfo(
+  user: AuthUser,
+): Promise<{ prefix: string | null; createdAt: Date | null }> {
+  const database = assertDatabase()
+  const rows = await database
+    .select()
+    .from(apiKeysTable)
+    .where(eq(apiKeysTable.userId, user.id))
+    .limit(1)
+
+  const row = rows[0]
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return row
+    ? { prefix: row.keyPrefix, createdAt: row.createdAt }
+    : { prefix: null, createdAt: null }
+}
+
+export async function regenerateApiKey(
+  user: AuthUser,
+): Promise<{ apiKey: string; prefix: string }> {
+  const database = assertDatabase()
+  const { plaintext, hash, prefix } = generateApiKey()
+
+  await database
+    .delete(apiKeysTable)
+    .where(eq(apiKeysTable.userId, user.id))
+
+  await database.insert(apiKeysTable).values({
+    userId: user.id,
+    keyHash: hash,
+    keyPrefix: prefix,
+  })
+
+  return { apiKey: plaintext, prefix }
+}
+
+export async function revokeApiKey(user: AuthUser) {
+  const database = assertDatabase()
+  await database
+    .delete(apiKeysTable)
+    .where(eq(apiKeysTable.userId, user.id))
+}
+
+export async function validateApiKey(apiKey: string): Promise<AuthUser | null> {
+  if (!apiKey.startsWith('ft_')) return null
+
+  const database = assertDatabase()
+  const hash = createHash('sha256').update(apiKey).digest('hex')
+
+  const rows = await database
+    .select()
+    .from(apiKeysTable)
+    .where(eq(apiKeysTable.keyHash, hash))
+    .limit(1)
+
+  const row = rows[0]
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!row) return null
+
+  await database
+    .update(apiKeysTable)
+    .set({ lastUsedAt: new Date() })
+    .where(eq(apiKeysTable.id, row.id))
+
+  const profiles = await database
+    .select()
+    .from(profilesTable)
+    .where(eq(profilesTable.id, row.userId))
+    .limit(1)
+
+  const profile = profiles[0]
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!profile) return null
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    displayName: profile.displayName,
+  }
 }

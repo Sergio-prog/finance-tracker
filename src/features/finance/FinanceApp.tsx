@@ -50,6 +50,7 @@ export function FinanceApp() {
     transactions,
     subscriptions,
     labels,
+    apiKeyInfo,
     isLoading,
     error,
     addTransaction,
@@ -62,6 +63,8 @@ export function FinanceApp() {
     addLabel,
     removeLabel,
     saveProfile,
+    regenerateApiKey,
+    revokeApiKey,
   } = useFinanceData()
   const labelOptions = useMemo(
     () => labels.map((label) => label.name),
@@ -214,6 +217,9 @@ export function FinanceApp() {
                           onAddLabel={addLabel}
                           onRemoveLabel={removeLabel}
                           onSaveProfile={saveProfile}
+                          apiKeyInfo={apiKeyInfo}
+                          onRegenerateApiKey={regenerateApiKey}
+                          onRevokeApiKey={revokeApiKey}
                         />
                       </TabsContent>
                     </>

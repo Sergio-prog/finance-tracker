@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { itemMotion, listMotion, tapMotion } from './animations'
+import { tapMotion } from './animations'
 import { categoryIconOptions, customCategoryColor } from './categoryOptions'
 import { cn } from '@/lib/utils'
 import type { Category, OperationType } from '@/server/trpc/types'
@@ -75,7 +75,10 @@ export function CategoryPicker({
 
       <motion.div
         className="grid grid-cols-4 gap-3 sm:grid-cols-6"
-        variants={listMotion}
+        variants={{
+          hidden: { opacity: 1 },
+          show: { opacity: 1, transition: { staggerChildren: 0.008 } },
+        }}
         initial="hidden"
         animate="show"
       >
@@ -87,7 +90,10 @@ export function CategoryPicker({
               key={category.id}
               type="button"
               className="grid min-w-0 justify-items-center gap-2"
-              variants={itemMotion}
+              variants={{
+                hidden: { opacity: 0, y: 4 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.1 } },
+              }}
               {...tapMotion}
               onClick={() => onSelect(category.id)}
             >

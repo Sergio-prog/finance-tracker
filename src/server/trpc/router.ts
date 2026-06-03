@@ -12,8 +12,11 @@ import {
   deleteLabel,
   deleteSubscription,
   deleteTransaction,
+  getApiKeyInfo,
   getDashboard,
   processSubscriptions,
+  regenerateApiKey,
+  revokeApiKey,
   updateProfile,
   updateSubscription,
   updateTransaction,
@@ -91,6 +94,13 @@ export const appRouter = t.router({
   deleteSubscription: authenticatedProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(({ ctx, input }) => deleteSubscription(ctx.user, input.id)),
+  getApiKey: authenticatedProcedure.query(({ ctx }) => getApiKeyInfo(ctx.user)),
+  regenerateApiKey: authenticatedProcedure.mutation(({ ctx }) =>
+    regenerateApiKey(ctx.user),
+  ),
+  revokeApiKey: authenticatedProcedure.mutation(({ ctx }) =>
+    revokeApiKey(ctx.user),
+  ),
 })
 
 export type AppRouter = typeof appRouter

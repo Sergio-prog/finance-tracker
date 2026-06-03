@@ -143,6 +143,25 @@ export const labels = pgTable(
   ],
 )
 
+export const apiKeys = pgTable(
+  'api_keys',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    keyHash: text('key_hash').notNull(),
+    keyPrefix: text('key_prefix').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('api_keys_user_id_idx').on(table.userId),
+  ],
+)
+
 export const exchangeRates = pgTable('exchange_rates', {
   id: uuid('id').primaryKey().defaultRandom(),
   baseCurrency: text('base_currency').notNull(),

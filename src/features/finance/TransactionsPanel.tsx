@@ -1,9 +1,15 @@
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip } from 'recharts'
-import { TrendingDown, TrendingUp } from 'lucide-react'
-import { MoreHorizontal } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { ChartContainer } from '@/components/ui/chart'
 import type { ChartConfig } from '@/components/ui/chart'
 import {
@@ -15,8 +21,18 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { itemMotion, listMotion, pageMotion, tapMotion } from './animations'
 import { formatCompactMoney, formatMoney } from './format'
-import { groupTransactions, summarizeTransactions } from './metrics'
-import type { Period, Transaction } from '@/server/trpc/types'
+import {
+  type ViewMode,
+  filterTransactionsByPeriod,
+  getChartInterval,
+  getPeriodBounds,
+  getPeriodLabel,
+  groupTransactionsByInterval,
+  isCurrentPeriod,
+  shiftPeriod,
+  summarizeTransactions,
+} from './metrics'
+import type { Transaction } from '@/server/trpc/types'
 
 const chartConfig = {
   spent: { label: 'Spent', color: 'var(--primary)' },
@@ -34,41 +50,85 @@ export function TransactionsPanel({
   onEdit,
   onDelete,
 }: TransactionsPanelProps) {
-  const [period, setPeriod] = useState<Period>('month')
+  const [viewMode, setViewMode] = useState<ViewMode>('month')
+  const [anchorDate, setAnchorDate] = useState<Date>(new Date())
+
+  const bounds = useMemo(
+    () => getPeriodBounds(anchorDate, viewMode),
+    [anchorDate, viewMode],
+  )
+  const chartInterval = useMemo(
+    () => getChartInterval(viewMode),
+    [viewMode],
+  )
+  const filteredTransactions = useMemo(
+    () => filterTransactionsByPeriod(transactions, bounds),
+    [transactions, bounds],
+  )
   const summary = useMemo(
-    () => summarizeTransactions(transactions),
-    [transactions],
+    () => summarizeTransactions(filteredTransactions),
+    [filteredTransactions],
   )
+  const net = summary.gained - summary.spent
   const chartData = useMemo(
-    () => groupTransactions(transactions, period),
-    [period, transactions],
+    () =>
+      groupTransactionsByInterval(
+        filteredTransactions,
+        chartInterval,
+        bounds.start,
+        bounds.end,
+      ),
+    [filteredTransactions, chartInterval, bounds],
   )
-  const currency = transactions[0]?.currency ?? 'USD'
-  const hasTransactions = transactions.length > 0
+  const currency =
+    filteredTransactions[0]?.currency ??
+    transactions[0]?.currency ??
+    'USD'
+  const hasTransactions = filteredTransactions.length > 0
+  const periodLabel = getPeriodLabel(anchorDate, viewMode)
+  const atCurrentPeriod = isCurrentPeriod(bounds, viewMode)
+
+  const goPrevious = () =>
+    setAnchorDate((prev) => shiftPeriod(prev, viewMode, -1))
+  const goNext = () =>
+    setAnchorDate((prev) => shiftPeriod(prev, viewMode, 1))
 
   return (
     <motion.section className="grid min-w-0 gap-6" {...pageMotion}>
-      <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-        <div>
-          <p className="text-sm text-muted-foreground">Selected period</p>
-          <div className="mt-2 grid grid-cols-2 gap-3 sm:flex">
-            <Metric label="Spent" value={formatMoney(summary.spent, currency)} />
-            <Metric
-              label="Gained"
-              value={formatMoney(summary.gained, currency)}
-            />
-          </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goPrevious}
+            aria-label="Previous period"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="min-w-[140px] text-center text-sm font-medium sm:text-base">
+            {periodLabel}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goNext}
+            disabled={atCurrentPeriod}
+            aria-label="Next period"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
         </div>
         <Tabs
-          value={period}
-          onValueChange={(value) => setPeriod(value as Period)}
+          value={viewMode}
+          onValueChange={(value) => {
+            setViewMode(value as ViewMode)
+          }}
         >
-          <TabsList className="grid w-full grid-cols-4 md:w-auto">
-            {(['day', 'week', 'month', 'year'] as const).map((item) => (
+          <TabsList className="grid w-full grid-cols-3 sm:w-auto">
+            {(['week', 'month', 'year'] as const).map((item) => (
               <TabsTrigger key={item} value={item} asChild>
                 <motion.button type="button" {...tapMotion}>
-                  {item[0].toUpperCase()}
-                  {item.slice(1)}
+                  {item[0].toUpperCase() + item.slice(1)}
                 </motion.button>
               </TabsTrigger>
             ))}
@@ -76,44 +136,65 @@ export function TransactionsPanel({
         </Tabs>
       </div>
 
+      <div className="grid grid-cols-3 gap-3">
+        <Metric label="Spent" value={formatMoney(summary.spent, currency)} />
+        <Metric
+          label="Gained"
+          value={formatMoney(summary.gained, currency)}
+          tone="positive"
+        />
+        <Metric
+          label="Net"
+          value={formatMoney(net, currency)}
+          tone={net >= 0 ? 'positive' : 'negative'}
+        />
+      </div>
+
       <div className="overflow-hidden rounded-xl border bg-card/60 p-4 shadow-sm backdrop-blur-sm">
         {hasTransactions ? (
-          <ChartContainer
-            config={chartConfig}
-            className="h-[220px] w-full max-w-full sm:h-[280px]"
+          <motion.div
+            key={`${viewMode}-${periodLabel}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
           >
-            <BarChart
-              data={chartData}
-              accessibilityLayer
-              margin={{ top: 8, right: 4, left: 4, bottom: 4 }}
+            <ChartContainer
+              config={chartConfig}
+              className="h-[220px] w-full max-w-full sm:h-[280px]"
             >
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                fontSize={11}
-                interval="preserveStartEnd"
-                minTickGap={16}
-              />
-              <Tooltip content={<MoneyTooltip currency={currency} />} />
-              <Bar
-                dataKey="spent"
-                fill="var(--color-spent)"
-                radius={[6, 6, 0, 0]}
-                maxBarSize={28}
-                animationDuration={700}
-              />
-              <Bar
-                dataKey="gained"
-                fill="var(--color-gained)"
-                radius={[6, 6, 0, 0]}
-                maxBarSize={28}
-                animationDuration={700}
-              />
-            </BarChart>
-          </ChartContainer>
+              <BarChart
+                data={chartData}
+                accessibilityLayer
+                margin={{ top: 8, right: 4, left: 4, bottom: 4 }}
+              >
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  fontSize={11}
+                  interval="preserveStartEnd"
+                  minTickGap={16}
+                />
+                <Tooltip content={<MoneyTooltip currency={currency} />} />
+                <Bar
+                  dataKey="spent"
+                  fill="var(--color-spent)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={28}
+                  isAnimationActive={false}
+                />
+                <Bar
+                  dataKey="gained"
+                  fill="var(--color-gained)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={28}
+                  isAnimationActive={false}
+                />
+              </BarChart>
+            </ChartContainer>
+          </motion.div>
         ) : (
           <EmptyChart />
         )}
@@ -126,7 +207,7 @@ export function TransactionsPanel({
         animate="show"
       >
         {hasTransactions ? (
-          transactions.map((transaction, index) => (
+          filteredTransactions.map((transaction, index) => (
             <motion.div key={transaction.id} variants={itemMotion} layout>
               <div className="group flex items-center gap-1 rounded-md px-2 py-3 transition-colors hover:bg-muted/30">
                 <button
@@ -196,7 +277,7 @@ export function TransactionsPanel({
                   </Popover>
                 ) : null}
               </div>
-              {index < transactions.length - 1 ? <Separator /> : null}
+              {index < filteredTransactions.length - 1 ? <Separator /> : null}
             </motion.div>
           ))
         ) : (
@@ -212,14 +293,31 @@ export function TransactionsPanel({
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone?: 'neutral' | 'positive' | 'negative'
+}) {
+  const toneClass =
+    tone === 'positive'
+      ? 'text-emerald-600'
+      : tone === 'negative'
+        ? 'text-red-600'
+        : ''
+
   return (
     <motion.div
       className="min-w-0 rounded-md border bg-card px-3 py-2"
       {...tapMotion}
     >
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="truncate text-lg font-semibold tabular-nums sm:text-xl">
+      <p
+        className={`truncate text-lg font-semibold tabular-nums sm:text-xl ${toneClass}`}
+      >
         {value}
       </p>
     </motion.div>

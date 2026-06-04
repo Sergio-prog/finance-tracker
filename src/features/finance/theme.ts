@@ -14,7 +14,7 @@ export function resolveThemeMode(themeMode: ThemeMode) {
     : 'light'
 }
 
-export const accents = ['default', 'emerald', 'sky', 'violet', 'rose'] as const
+export const accents = ['default', 'emerald', 'sky', 'violet', 'rose', 'teal', 'indigo', 'coral', 'lime'] as const
 export type Accent = (typeof accents)[number]
 
 export function isAccent(value: string | null): value is Accent {
@@ -33,6 +33,10 @@ export const accentLabels: Record<Accent, string> = {
   sky: 'Sky',
   violet: 'Violet',
   rose: 'Rose',
+  teal: 'Teal',
+  indigo: 'Indigo',
+  coral: 'Coral',
+  lime: 'Lime',
 }
 
 export const backgrounds = ['default', 'subtle', 'warm', 'cool'] as const
@@ -53,4 +57,10 @@ export const backgroundLabels: Record<Background, string> = {
   subtle: 'Subtle',
   warm: 'Warm glow',
   cool: 'Cool tones',
+}
+
+export function getInitialBgAnimation(): boolean {
+  if (typeof window === 'undefined') return true
+  const stored = window.localStorage.getItem('bgAnimation')
+  return stored !== 'false'
 }

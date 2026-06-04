@@ -31,6 +31,8 @@ type SettingsPanelProps = {
   onAccentChange: (accent: Accent) => void
   background: Background
   onBackgroundChange: (background: Background) => void
+  bgAnimation: boolean
+  onBgAnimationChange: (enabled: boolean) => void
   profile: Profile
   labels: Label[]
   onAddLabel: (input: { name: string }) => Promise<void>
@@ -48,6 +50,8 @@ export function SettingsPanel({
   onAccentChange,
   background,
   onBackgroundChange,
+  bgAnimation,
+  onBgAnimationChange,
   profile,
   labels,
   onAddLabel,
@@ -223,12 +227,25 @@ export function SettingsPanel({
           <Separator />
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Install mode</p>
+              <p className="font-medium">Background animation</p>
               <p className="text-sm text-muted-foreground">
-                Manifest is configured for standalone usage.
+                Subtle motion effects on the background.
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch
+              checked={bgAnimation}
+              onCheckedChange={onBgAnimationChange}
+            />
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-medium">Install mode</p>
+              <p className="text-sm text-muted-foreground">
+                This app can be added to your home screen via browser's "Add to Home Screen" or "Install" button. It will then open in standalone mode without browser chrome.
+              </p>
+            </div>
+            <Switch defaultChecked disabled className="shrink-0" />
           </div>
         </div>
 
@@ -408,6 +425,10 @@ const accentColors: Record<Accent, string> = {
   sky: 'oklch(0.55 0.16 240)',
   violet: 'oklch(0.55 0.2 290)',
   rose: 'oklch(0.55 0.18 360)',
+  teal: 'oklch(0.55 0.15 175)',
+  indigo: 'oklch(0.52 0.2 265)',
+  coral: 'oklch(0.58 0.17 20)',
+  lime: 'oklch(0.55 0.16 130)',
 }
 
 function AccentPicker({
@@ -421,7 +442,7 @@ function AccentPicker({
     <div
       role="radiogroup"
       aria-label="Accent color"
-      className="grid grid-cols-5 gap-2"
+      className="grid grid-cols-3 gap-2 sm:grid-cols-5"
     >
       {accents.map((accent) => {
         const selected = accent === value

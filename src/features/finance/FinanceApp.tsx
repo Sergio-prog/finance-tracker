@@ -20,6 +20,7 @@ import { SubscriptionsPanel } from './SubscriptionsPanel'
 import {
   getInitialAccent,
   getInitialBackground,
+  getInitialBgAnimation,
   isThemeMode,
   resolveThemeMode,
 } from './theme'
@@ -42,6 +43,7 @@ export function FinanceApp() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode)
   const [accent, setAccent] = useState<Accent>(getInitialAccent)
   const [background, setBackground] = useState<Background>(getInitialBackground)
+  const [bgAnimation, setBgAnimation] = useState<boolean>(getInitialBgAnimation)
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [editingSub, setEditingSub] = useState<Subscription | null>(null)
   const {
@@ -100,10 +102,21 @@ export function FinanceApp() {
     window.localStorage.setItem('background', background)
   }, [background])
 
+  useEffect(() => {
+    window.localStorage.setItem('bgAnimation', String(bgAnimation))
+  }, [bgAnimation])
+
   return (
     <MotionConfig reducedMotion="user">
       <TooltipProvider>
-        <main className="min-h-svh bg-[image:var(--app-background)]">
+        <main className="relative min-h-svh">
+          <div
+            aria-hidden="true"
+            className="bg-layer fixed inset-0 -z-10"
+            style={{ backgroundImage: 'var(--app-background)' }}
+            data-background={background}
+            data-bg-animation={bgAnimation ? 'true' : 'false'}
+          />
           <motion.div
             className="mx-auto grid min-h-svh w-full max-w-[1680px] grid-rows-[auto_1fr] px-4 py-4 pb-24 sm:px-5 md:px-6 md:pb-4 lg:px-6"
             {...pageMotion}
@@ -212,6 +225,8 @@ export function FinanceApp() {
                           onAccentChange={setAccent}
                           background={background}
                           onBackgroundChange={setBackground}
+                          bgAnimation={bgAnimation}
+                          onBgAnimationChange={setBgAnimation}
                           profile={profile}
                           labels={labels}
                           onAddLabel={addLabel}

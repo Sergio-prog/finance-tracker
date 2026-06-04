@@ -21,7 +21,7 @@ The user must generate one from **Settings → API Key** inside the finance trac
 
 ## Basics
 
-- **Base URL**: depends on where the app runs (user tells you this).
+- **Base URL**: `https://finance.serhiifotex.dev`
 - **Auth**: pass `X-API-Key: ft_...` header.
 - **Content-Type**: always `application/json`.
 - **CORS**: enabled for all origins — agents hosted anywhere can call it.
@@ -67,7 +67,7 @@ FINANCES_API_KEY=ft_abc123 bun run packages/finances-cli/src/index.ts -- <comman
 | Flag | Env var | Default | Description |
 |---|---|---|---|
 | `-k, --api-key <key>` | `FINANCES_API_KEY` | — | API key from Settings page |
-| `-u, --url <url>` | `FINANCES_URL` | `http://localhost:3000` | Instance base URL |
+| `-u, --url <url>` | `FINANCES_URL` | `https://finance.serhiifotex.dev` | Instance base URL |
 | `-p, --pretty` | — | off | Pretty-print (default is JSON for agents) |
 
 ### Commands

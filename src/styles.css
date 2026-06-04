@@ -274,7 +274,6 @@ body {
   background-repeat: no-repeat;
   background-size: 100% 100%, 100% 100%;
   background-position: 50% 0%, 0% 0%;
-  transition: background-image 0.6s ease;
 }
 
 /* subtle — corner highlight for depth */
@@ -339,20 +338,20 @@ body {
     linear-gradient(180deg, oklch(0.155 0.014 65), oklch(0.115 0.015 68));
 }
 
-.bg-layer[data-background='sunset'] {
+.bg-layer[data-bg-layout='sunset'] {
   background-size: 100% 100%, 100% 100%, 100% 100%;
   background-position: 80% 0%, 20% 100%, 0% 0%;
 }
-.bg-layer[data-background='moonlight'] {
+.bg-layer[data-bg-layout='moonlight'] {
   background-position: 30% 0%, 0% 0%;
 }
-.bg-layer[data-background='warm'] {
+.bg-layer[data-bg-layout='warm'] {
   background-position: 50% 0%, 0% 0%;
 }
-.bg-layer[data-background='cool'] {
+.bg-layer[data-bg-layout='cool'] {
   background-position: 50% 100%, 0% 0%;
 }
-.bg-layer[data-background='subtle'] {
+.bg-layer[data-bg-layout='subtle'] {
   background-position: 100% 0%, 0% 0%;
 }
 
@@ -383,22 +382,22 @@ body {
   100% { background-position: 75% 3%, 25% 96%, 0% 0%; background-size: 108% 108%, 105% 105%, 100% 100%; }
 }
 
-[data-bg-animation='true'][data-background='default'] {
+[data-bg-animation='true'][data-bg-layout='default'] {
   animation: bg-move 14s ease-in-out infinite alternate;
 }
-[data-bg-animation='true'][data-background='subtle'] {
+[data-bg-animation='true'][data-bg-layout='subtle'] {
   animation: bg-move-subtle 12s ease-in-out infinite alternate;
 }
-[data-bg-animation='true'][data-background='warm'] {
+[data-bg-animation='true'][data-bg-layout='warm'] {
   animation: bg-move-warm 16s ease-in-out infinite alternate;
 }
-[data-bg-animation='true'][data-background='cool'] {
+[data-bg-animation='true'][data-bg-layout='cool'] {
   animation: bg-move-cool 18s ease-in-out infinite alternate;
 }
-[data-bg-animation='true'][data-background='moonlight'] {
+[data-bg-animation='true'][data-bg-layout='moonlight'] {
   animation: bg-move-moonlight 15s ease-in-out infinite alternate;
 }
-[data-bg-animation='true'][data-background='sunset'] {
+[data-bg-animation='true'][data-bg-layout='sunset'] {
   animation: bg-move-sunset 20s ease-in-out infinite alternate;
 }
 

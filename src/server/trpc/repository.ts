@@ -206,9 +206,6 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
 
   await ensureUserProfile(user)
 
-  // Process due subscriptions so the returned data is always up to date
-  await processSubscriptions(user)
-
   const [
     loadedCategoryRows,
     transactionRows,

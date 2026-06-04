@@ -1,5 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { startSubscriptionScheduler } from '@/server/scheduler'
+
+startSubscriptionScheduler()
+
 export const Route = createFileRoute('/api/cron')({
   server: {
     handlers: {

@@ -425,6 +425,91 @@ The finance tracker stores all monetary values in **minor units** (cents) intern
 }
 ```
 
+## CLI tool (finances-cli)
+
+A command-line wrapper is available at `packages/finances-cli/` inside the project. It wraps every API endpoint into simple subcommands.
+
+### Setup
+
+```bash
+cd path/to/finance-tracker
+FINANCES_API_KEY=ft_... FINANCES_URL=http://localhost:3000
+```
+
+Or pass inline:
+
+```bash
+bun run packages/finances-cli/src/index.ts --api-key ft_... --url http://localhost:3000 -- transactions list
+```
+
+After publishing to npm, use via npx:
+
+```bash
+FINANCES_API_KEY=ft_... npx finances-cli dashboard
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `account` | Get account info |
+| `dashboard` | Get full dashboard dump |
+| `transactions list` | List all transactions |
+| `transactions get <id>` | Get one transaction |
+| `transactions create [options]` | Create a transaction |
+| `transactions delete <id>` | Delete a transaction |
+| `categories list` | List all categories |
+| `categories get <id>` | Get one category |
+| `categories create [options]` | Create a category |
+| `subscriptions list` | List all subscriptions |
+| `subscriptions get <id>` | Get one subscription |
+| `subscriptions create [options]` | Create a subscription |
+| `subscriptions delete <id>` | Delete a subscription |
+| `labels list` | List all labels |
+| `labels get <id>` | Get one label |
+| `labels create [options]` | Create a label |
+| `labels delete <id>` | Delete a label |
+| `aggregated --period <p> [--date <d>]` | Aggregated data by period |
+
+### Global options
+
+- `-k, --api-key <key>` — API key (also via `FINANCES_API_KEY` env)
+- `-u, --url <url>` — Base URL (also via `FINANCES_URL` env, default `http://localhost:3000`)
+- `-p, --pretty` — Human-readable output (default is JSON for agents)
+
+### Examples
+
+```bash
+FINANCES_API_KEY=ft_abc123 npx finances-cli account
+
+FINANCES_API_KEY=ft_abc123 npx finances-cli aggregated --period month --date 2024-06-01
+
+FINANCES_API_KEY=ft_abc123 npx finances-cli transactions create \
+  --type expense \
+  --category-id uuid \
+  --amount 12.50 \
+  --currency USD \
+  --date 2024-06-03 \
+  --note "Lunch at cafe" \
+  --labels Work,Food
+```
+
+### Output
+
+By default every command outputs JSON to stdout for easy parsing:
+
+```bash
+$ FINANCES_API_KEY=ft_abc123 npx finances-cli account
+{"id":"uuid","email":"...","displayName":"...","defaultCurrency":"USD"}
+```
+
+Errors go to stderr as JSON too:
+
+```bash
+$ npx finances-cli account
+{"error":"API key is required. Use --api-key or set FINANCES_API_KEY environment variable."}
+```
+
 ## Quick reference for agents
 
 ```python

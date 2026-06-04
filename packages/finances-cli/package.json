@@ -1,0 +1,27 @@
+{
+  "name": "finances-cli",
+  "version": "0.1.0",
+  "description": "CLI for the Finance Tracker API — lets agents manage transactions, categories, subscriptions, and get aggregated data",
+  "type": "module",
+  "bin": {
+    "finances-cli": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --external commander && chmod +x ./dist/index.js",
+    "prepublishOnly": "bun run build",
+    "dev": "FINANCES_API_KEY=${FINANCES_API_KEY:-} bun run src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^6.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

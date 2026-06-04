@@ -89,7 +89,7 @@ body {
   --chart-5: oklch(0.48 0.06 35);
   --chart-profit: oklch(0.58 0.12 145);
   --app-background:
-    radial-gradient(circle at 8% 0%, oklch(0.91 0.04 var(--bg-accent-hue)), transparent 30rem),
+    radial-gradient(circle at 50% 0%, oklch(0.91 0.045 var(--bg-accent-hue) / 0.5), transparent 45rem),
     linear-gradient(180deg, oklch(0.985 0.007 78), oklch(0.94 0.012 74));
   --radius: 0.625rem;
   --sidebar: oklch(0.96 0.01 78);
@@ -130,9 +130,9 @@ body {
   --chart-profit: oklch(0.67 0.12 145);
   --app-background:
     radial-gradient(
-      circle at 8% -6%,
-      oklch(0.3 0.055 var(--bg-accent-hue) / 0.85),
-      transparent 30rem
+      circle at 50% 0%,
+      oklch(0.3 0.06 var(--bg-accent-hue) / 0.65),
+      transparent 45rem
     ),
     linear-gradient(180deg, oklch(0.155 0.014 65), oklch(0.12 0.012 62));
   --sidebar: oklch(0.19 0.016 65);
@@ -267,67 +267,139 @@ body {
 }
 
 /* === Background themes === */
+/* Each background has 2+ layers: a spotlight (animated) + a base (static).
+   The spotlight layer is always layer 1, the base is the last layer.
+   Animations shift background-position + background-size on layer 1 only. */
+.bg-layer {
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% 100%;
+  background-position: 50% 0%, 0% 0%;
+  transition: background-image 0.6s ease;
+}
+
+/* subtle — corner highlight for depth */
 [data-background='subtle'] {
   --app-background:
+    radial-gradient(circle at 100% 0%, oklch(0.96 0.004 78), transparent 40rem),
     linear-gradient(180deg, oklch(0.985 0.007 78), oklch(0.97 0.01 78));
 }
 .dark[data-background='subtle'] {
   --app-background:
+    radial-gradient(circle at 100% 100%, oklch(0.2 0.01 65), transparent 40rem),
     linear-gradient(180deg, oklch(0.16 0.015 65), oklch(0.14 0.012 65));
 }
 
+/* warm — amber spotlight top-center, warm-tinted base */
 [data-background='warm'] {
   --app-background:
-    radial-gradient(circle at 10% 10%, oklch(0.91 0.04 58), transparent 40rem);
+    radial-gradient(circle at 50% 0%, oklch(0.93 0.045 58 / 0.6), transparent 45rem),
+    linear-gradient(180deg, oklch(0.985 0.008 68), oklch(0.92 0.015 72));
 }
 .dark[data-background='warm'] {
   --app-background:
-    radial-gradient(circle at 10% 10%, oklch(0.3 0.055 68 / 0.85), transparent 40rem);
+    radial-gradient(circle at 50% 0%, oklch(0.32 0.06 58 / 0.75), transparent 45rem),
+    linear-gradient(180deg, oklch(0.165 0.015 62), oklch(0.12 0.012 60));
 }
 
+/* cool — blue spotlight bottom-center, cool-tinted base */
 [data-background='cool'] {
   --app-background:
-    radial-gradient(circle at 10% 10%, oklch(0.9 0.03 220), transparent 40rem);
+    radial-gradient(circle at 50% 100%, oklch(0.9 0.03 230 / 0.5), transparent 45rem),
+    linear-gradient(180deg, oklch(0.985 0.008 88), oklch(0.93 0.015 82));
 }
 .dark[data-background='cool'] {
   --app-background:
-    radial-gradient(circle at 10% 10%, oklch(0.28 0.04 240 / 0.85), transparent 40rem);
+    radial-gradient(circle at 50% 100%, oklch(0.28 0.04 230 / 0.75), transparent 45rem),
+    linear-gradient(180deg, oklch(0.155 0.015 72), oklch(0.115 0.012 70));
 }
 
-/* === Background animations === */
-.bg-layer {
-  background-size: cover;
-  transition: background-image 0.6s ease;
+/* moonlight — purple spotlight top-left, cool-purple base */
+[data-background='moonlight'] {
+  --app-background:
+    radial-gradient(circle at 30% 0%, oklch(0.88 0.025 275 / 0.5), transparent 40rem),
+    linear-gradient(180deg, oklch(0.97 0.01 88), oklch(0.93 0.015 82));
+}
+.dark[data-background='moonlight'] {
+  --app-background:
+    radial-gradient(circle at 30% 0%, oklch(0.26 0.04 270 / 0.7), transparent 40rem),
+    linear-gradient(180deg, oklch(0.145 0.018 70), oklch(0.105 0.015 68));
 }
 
-@keyframes bg-default {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-2.5%, -1.5%) scale(1.04); }
+/* sunset — warm spot top-right + cool spot bottom-left, 3 layers */
+[data-background='sunset'] {
+  --app-background:
+    radial-gradient(circle at 80% 0%, oklch(0.91 0.04 45 / 0.5), transparent 40rem),
+    radial-gradient(circle at 20% 100%, oklch(0.88 0.035 310 / 0.4), transparent 40rem),
+    linear-gradient(180deg, oklch(0.985 0.007 78), oklch(0.93 0.015 82));
 }
-@keyframes bg-subtle {
-  0% { opacity: 0.8; }
-  100% { opacity: 1; }
+.dark[data-background='sunset'] {
+  --app-background:
+    radial-gradient(circle at 80% 0%, oklch(0.32 0.055 45 / 0.65), transparent 40rem),
+    radial-gradient(circle at 20% 100%, oklch(0.25 0.04 310 / 0.55), transparent 40rem),
+    linear-gradient(180deg, oklch(0.155 0.014 65), oklch(0.115 0.015 68));
 }
-@keyframes bg-warm {
-  0% { transform: scale(1) rotate(0deg); }
-  100% { transform: scale(1.06) rotate(1deg); }
+
+.bg-layer[data-background='sunset'] {
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  background-position: 80% 0%, 20% 100%, 0% 0%;
 }
-@keyframes bg-cool {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(1.5%, 1%) scale(1.03); }
+.bg-layer[data-background='moonlight'] {
+  background-position: 30% 0%, 0% 0%;
+}
+.bg-layer[data-background='warm'] {
+  background-position: 50% 0%, 0% 0%;
+}
+.bg-layer[data-background='cool'] {
+  background-position: 50% 100%, 0% 0%;
+}
+.bg-layer[data-background='subtle'] {
+  background-position: 100% 0%, 0% 0%;
+}
+
+/* === Background animations ===
+   Only layer 1 (spotlight) moves. Layers are comma-separated in the keyframes. */
+@keyframes bg-move {
+  0% { background-position: 50% 0%, 0% 0%; background-size: 100% 100%, 100% 100%; }
+  100% { background-position: 55% 5%, 0% 0%; background-size: 110% 110%, 100% 100%; }
+}
+@keyframes bg-move-subtle {
+  0% { background-position: 100% 0%, 0% 0%; }
+  100% { background-position: 90% 5%, 0% 0%; }
+}
+@keyframes bg-move-warm {
+  0% { background-position: 50% 0%, 0% 0%; background-size: 100% 100%, 100% 100%; }
+  100% { background-position: 56% -4%, 0% 0%; background-size: 110% 115%, 100% 100%; }
+}
+@keyframes bg-move-cool {
+  0% { background-position: 50% 100%, 0% 0%; background-size: 100% 100%, 100% 100%; }
+  100% { background-position: 45% 95%, 0% 0%; background-size: 108% 108%, 100% 100%; }
+}
+@keyframes bg-move-moonlight {
+  0% { background-position: 30% 0%, 0% 0%; background-size: 100% 100%, 100% 100%; }
+  100% { background-position: 35% 3%, 0% 0%; background-size: 105% 110%, 100% 100%; }
+}
+@keyframes bg-move-sunset {
+  0% { background-position: 80% 0%, 20% 100%, 0% 0%; background-size: 100% 100%, 100% 100%, 100% 100%; }
+  100% { background-position: 75% 3%, 25% 96%, 0% 0%; background-size: 108% 108%, 105% 105%, 100% 100%; }
 }
 
 [data-bg-animation='true'][data-background='default'] {
-  animation: bg-default 14s ease-in-out infinite alternate;
+  animation: bg-move 14s ease-in-out infinite alternate;
 }
 [data-bg-animation='true'][data-background='subtle'] {
-  animation: bg-subtle 8s ease-in-out infinite alternate;
+  animation: bg-move-subtle 12s ease-in-out infinite alternate;
 }
 [data-bg-animation='true'][data-background='warm'] {
-  animation: bg-warm 12s ease-in-out infinite alternate;
+  animation: bg-move-warm 16s ease-in-out infinite alternate;
 }
 [data-bg-animation='true'][data-background='cool'] {
-  animation: bg-cool 16s ease-in-out infinite alternate;
+  animation: bg-move-cool 18s ease-in-out infinite alternate;
+}
+[data-bg-animation='true'][data-background='moonlight'] {
+  animation: bg-move-moonlight 15s ease-in-out infinite alternate;
+}
+[data-bg-animation='true'][data-background='sunset'] {
+  animation: bg-move-sunset 20s ease-in-out infinite alternate;
 }
 
 @layer base {

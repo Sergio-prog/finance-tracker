@@ -5,7 +5,6 @@ import {
   Loader2,
   ReceiptText,
   Settings,
-  WalletCards,
 } from 'lucide-react'
 import { MotionConfig, motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
@@ -123,9 +122,11 @@ export function FinanceApp() {
           >
             <header className="flex items-center justify-between gap-3 border-b pb-4">
               <div className="flex items-center gap-3">
-                <div className="grid size-10 place-items-center rounded-md bg-primary text-primary-foreground">
-                  <WalletCards className="size-5" />
-                </div>
+                <img
+                  src="/logo.svg"
+                  alt="Ledger"
+                  className="size-10 shrink-0"
+                />
                 <div>
                   <h1 className="text-xl font-semibold tracking-normal">
                     Ledger

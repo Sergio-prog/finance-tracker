@@ -237,16 +237,6 @@ export function SettingsPanel({
               onCheckedChange={onBgAnimationChange}
             />
           </div>
-          <Separator />
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-medium">Install mode</p>
-              <p className="text-sm text-muted-foreground">
-                This app can be added to your home screen via browser's "Add to Home Screen" or "Install" button. It will then open in standalone mode without browser chrome.
-              </p>
-            </div>
-            <Switch defaultChecked disabled className="shrink-0" />
-          </div>
         </div>
 
         <div className="rounded-md border bg-card p-4">
@@ -486,6 +476,8 @@ const backgroundHints: Record<Background, { ring: string; label: string }> = {
   subtle: { ring: 'bg-muted-foreground/20', label: 'Solid' },
   warm: { ring: 'bg-gradient-to-b from-amber-500/30 to-transparent', label: 'Warm' },
   cool: { ring: 'bg-gradient-to-b from-sky-500/30 to-transparent', label: 'Cool' },
+  moonlight: { ring: 'bg-gradient-to-b from-violet-500/30 to-transparent', label: 'Moonlight' },
+  sunset: { ring: 'bg-gradient-to-b from-rose-500/25 via-amber-500/25 to-transparent', label: 'Sunset' },
 }
 
 function BackgroundPicker({
@@ -499,7 +491,7 @@ function BackgroundPicker({
     <div
       role="radiogroup"
       aria-label="Background style"
-      className="grid grid-cols-4 gap-2"
+      className="grid grid-cols-3 gap-2 sm:grid-cols-3"
     >
       {backgrounds.map((bg) => {
         const selected = bg === value

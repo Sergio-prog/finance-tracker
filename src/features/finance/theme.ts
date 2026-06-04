@@ -39,7 +39,7 @@ export const accentLabels: Record<Accent, string> = {
   lime: 'Lime',
 }
 
-export const backgrounds = ['default', 'subtle', 'warm', 'cool'] as const
+export const backgrounds = ['default', 'subtle', 'warm', 'cool', 'moonlight', 'sunset'] as const
 export type Background = (typeof backgrounds)[number]
 
 export function isBackground(value: string | null): value is Background {
@@ -57,6 +57,8 @@ export const backgroundLabels: Record<Background, string> = {
   subtle: 'Subtle',
   warm: 'Warm glow',
   cool: 'Cool tones',
+  moonlight: 'Moonlight',
+  sunset: 'Sunset',
 }
 
 export function getInitialBgAnimation(): boolean {

@@ -1,17 +1,30 @@
+---
+name: finance-tracker-api
+description: |
+  Interact with a personal finance tracker app — read, create, update, and delete
+  transactions, categories, subscriptions, and labels, and get aggregated financial
+  summaries by period (week, month, year). Use this skill whenever the user asks you
+  to manage their finances, pull spending reports, create or edit expenses and income,
+  list or modify subscriptions, add categories or labels, or run any financial data
+  operation. Provides both a REST API reference (curl/HTTP) and a local CLI wrapper
+  (`finances-cli`). Pick whichever is more convenient — both use the same API key auth.
+  Covers full CRUD for all resources plus period-based aggregation with chart data.
+---
+
 # Finance Tracker API
 
 This skill helps agents interact with the user's personal finance tracker. You can use either **raw HTTP requests** (curl, fetch, httpx) or the **`finances-cli` wrapper** — pick whichever is easier in your environment. Both use the same auth.
 
-## Where the user gets the API key
+## Getting the API key
 
-Settings → API Key → Generate. The key starts with `ft_` and is shown **only once**. If lost, regenerate from the same page (invalidates the old key).
+The user must generate one from **Settings → API Key** inside the finance tracker app. The key starts with `ft_` and is shown **only once** at generation. If lost, the user can regenerate from the same page (invalidates the old key).
 
 ## Basics
 
 - **Base URL**: depends on where the app runs (user tells you this).
 - **Auth**: pass `X-API-Key: ft_...` header.
 - **Content-Type**: always `application/json`.
-- **CORS**: enabled for all origins.
+- **CORS**: enabled for all origins — agents hosted anywhere can call it.
 - **Amounts** are in **cents** in responses (`amountMinor: 1250` = $12.50), but **main units** in POST bodies (`amount: 12.50`).
 
 ---
@@ -20,23 +33,23 @@ Settings → API Key → Generate. The key starts with `ft_` and is shown **only
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/v1/account` | Profile info |
-| `GET` | `/api/v1/dashboard` | Full dump (categories, transactions, subscriptions, labels) |
+| `GET` | `/api/v1/account` | Profile info (id, email, displayName, defaultCurrency) |
+| `GET` | `/api/v1/dashboard` | Full dump — all categories, transactions, subscriptions, labels |
 | `GET` | `/api/v1/transactions` | List transactions |
-| `GET` | `/api/v1/transactions/:id` | Get one |
-| `POST` | `/api/v1/transactions` | Create (body: `type`, `categoryId`, `amount`, `currency`, `operationDate`, optional `note`, `labels`) |
-| `DELETE` | `/api/v1/transactions/:id` | Delete |
+| `GET` | `/api/v1/transactions/:id` | Get one transaction |
+| `POST` | `/api/v1/transactions` | Create a transaction |
+| `DELETE` | `/api/v1/transactions/:id` | Delete a transaction |
 | `GET` | `/api/v1/categories` | List categories |
-| `POST` | `/api/v1/categories` | Create (body: `name`, `icon`, `type`, optional `color`) |
+| `POST` | `/api/v1/categories` | Create a category |
 | `GET` | `/api/v1/subscriptions` | List subscriptions |
-| `POST` | `/api/v1/subscriptions` | Create (body: `name`, `amount`, `currency`, `nextChargeDate`, optional `billingFrequency`, `categoryId`, `billingDay`, `notes`, `autoCreateTransactions`) |
-| `DELETE` | `/api/v1/subscriptions/:id` | Delete |
+| `POST` | `/api/v1/subscriptions` | Create a subscription |
+| `DELETE` | `/api/v1/subscriptions/:id` | Delete a subscription |
 | `GET` | `/api/v1/labels` | List labels |
-| `POST` | `/api/v1/labels` | Create (body: `{ "name": "..." }`) |
-| `DELETE` | `/api/v1/labels/:id` | Delete |
-| `GET` | `/api/v1/aggregated?period=month&date=2024-06-01` | Summary + chart points + filtered transactions for a period (`year`, `month`, or `week`; `date` defaults to today) |
+| `POST` | `/api/v1/labels` | Create a label |
+| `DELETE` | `/api/v1/labels/:id` | Delete a label |
+| `GET` | `/api/v1/aggregated?period=month&date=2024-06-01` | Summary + chart points + transactions for a period (`year`, `month`, or `week`; `date` defaults to today) |
 
-Aggregated response includes `summary.spent/gained` (cents), `chart[].spent/gained` (main units), `transactions[]`.
+POST bodies use the same field names as the CLI flags below. The aggregated endpoint returns `summary.spent/gained` in cents, `chart[].spent/gained` in main units.
 
 ---
 
@@ -49,19 +62,19 @@ cd path/to/finance-tracker
 FINANCES_API_KEY=ft_abc123 bun run packages/finances-cli/src/index.ts -- <command>
 ```
 
-### Auth & config
+### Config
 
 | Flag | Env var | Default | Description |
 |---|---|---|---|
-| `-k, --api-key <key>` | `FINANCES_API_KEY` | — | API key |
-| `-u, --url <url>` | `FINANCES_URL` | `http://localhost:3000` | Base URL |
-| `-p, --pretty` | — | off | Human-readable output (default is JSON) |
+| `-k, --api-key <key>` | `FINANCES_API_KEY` | — | API key from Settings page |
+| `-u, --url <url>` | `FINANCES_URL` | `http://localhost:3000` | Instance base URL |
+| `-p, --pretty` | — | off | Pretty-print (default is JSON for agents) |
 
 ### Commands
 
-**account** — `finances-cli account`
+**account** — `finances-cli account` — profile info
 
-**dashboard** — `finances-cli dashboard`
+**dashboard** — `finances-cli dashboard` — full data dump
 
 **transactions**
 ```
@@ -102,7 +115,7 @@ finances-cli labels delete <id>
 ```
 finances-cli aggregated --period <period> [--date <date>]
 ```
-`-p --period` (required, one of: year, month, week), `-d --date` (optional, YYYY-MM-DD)
+`-p --period` (required: year, month, week), `-d --date` (optional: YYYY-MM-DD)
 
 ### Output
 

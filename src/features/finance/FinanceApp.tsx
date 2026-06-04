@@ -113,7 +113,7 @@ export function FinanceApp() {
             aria-hidden="true"
             className="bg-layer fixed inset-0 -z-10"
             style={{ backgroundImage: 'var(--app-background)' }}
-            data-background={background}
+            data-bg-layout={background}
             data-bg-animation={bgAnimation ? 'true' : 'false'}
           />
           <motion.div

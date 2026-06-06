@@ -1,7 +1,7 @@
 ---
 name: finance-tracker-api
 description: |
-  Interact with a personal finance tracker app — read, create, update, and delete
+  Interact with a personal finance tracker app (finance.serhiifotex.dev) — read, create, update, and delete
   transactions, categories, subscriptions, and labels, and get aggregated financial
   summaries by period (week, month, year). Use this skill whenever the user asks you
   to manage their finances, pull spending reports, create or edit expenses and income,

@@ -115,6 +115,7 @@ export function FinanceApp() {
             style={{ backgroundImage: 'var(--app-background)' }}
             data-bg-layout={background}
             data-bg-animation={bgAnimation ? 'true' : 'false'}
+            suppressHydrationWarning
           />
           <motion.div
             className="mx-auto grid min-h-svh w-full max-w-[1680px] grid-rows-[auto_1fr] px-4 py-4 pb-24 sm:px-5 md:px-6 md:pb-4 lg:px-6"

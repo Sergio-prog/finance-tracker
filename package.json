@@ -17,6 +17,7 @@
     "seed": "bun run scripts/seed-transactions.ts",
     "seed:dry": "bun run scripts/seed-transactions.ts --dry-run",
     "db:generate": "drizzle-kit generate",
+    "db:revert": "drizzle-kit drop",
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {

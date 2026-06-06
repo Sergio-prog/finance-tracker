@@ -162,6 +162,16 @@ export const apiKeys = pgTable(
   ],
 )
 
+export const whitelistedEmails = pgTable(
+  'whitelisted_emails',
+  {
+    email: text('email').primaryKey(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+)
+
 export const exchangeRates = pgTable('exchange_rates', {
   id: uuid('id').primaryKey().defaultRandom(),
   baseCurrency: text('base_currency').notNull(),

@@ -13,6 +13,7 @@ export const Route = createFileRoute('/api/cron')({
 
         if (
           !expectedSecret ||
+          !process.env.CRON_SECRET ||
           process.env.CRON_SECRET === 'CHANGE_ME' ||
           authHeader !== expectedSecret
         ) {

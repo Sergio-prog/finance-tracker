@@ -12,6 +12,7 @@ import {
   profiles as profilesTable,
   subscriptions as subscriptionsTable,
   transactions as transactionsTable,
+  wishlistItems as wishlistItemsTable,
 } from '../db/schema'
 import type { AuthUser } from '../auth'
 import type {
@@ -21,6 +22,7 @@ import type {
   Profile,
   Subscription,
   Transaction,
+  WishlistItem,
 } from './types'
 import type {
   categoryInput,
@@ -30,6 +32,8 @@ import type {
   subscriptionUpdate,
   transactionInput,
   transactionUpdate,
+  wishlistItemInput,
+  wishlistItemUpdate,
 } from './validators'
 import type { z } from 'zod'
 
@@ -212,6 +216,7 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
     subscriptionRows,
     labelRows,
     profileRows,
+    wishlistRows,
   ] = await Promise.all([
     database
       .select()
@@ -237,6 +242,11 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
       .from(profilesTable)
       .where(eq(profilesTable.id, user.id))
       .limit(1),
+    database
+      .select()
+      .from(wishlistItemsTable)
+      .where(eq(wishlistItemsTable.userId, user.id))
+      .orderBy(desc(wishlistItemsTable.createdAt)),
   ])
 
   let categoryRows =
@@ -302,6 +312,21 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
         status: subscription.status,
         autoCreateTransactions: subscription.autoCreateTransactions,
         notes: subscription.notes,
+      }),
+    ),
+    wishlistItems: wishlistRows.map(
+      (item): WishlistItem => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        url: item.url,
+        plannedDate: item.plannedDate,
+        isBought: item.isBought,
+        amountMinor: item.amountMinor,
+        currency: item.currency,
+        categoryId: item.categoryId,
+        boughtTransactionId: item.boughtTransactionId,
       }),
     ),
   }
@@ -750,6 +775,188 @@ export async function revokeApiKey(user: AuthUser) {
   await database
     .delete(apiKeysTable)
     .where(eq(apiKeysTable.userId, user.id))
+}
+
+export async function createWishlistItem(
+  user: AuthUser,
+  input: z.infer<typeof wishlistItemInput>,
+): Promise<WishlistItem> {
+  const database = assertDatabase()
+
+  const [created] = await database
+    .insert(wishlistItemsTable)
+    .values({
+      userId: user.id,
+      title: input.title,
+      description: input.description || null,
+      imageUrl: input.imageUrl || null,
+      url: input.url || null,
+      plannedDate: input.plannedDate || null,
+      amountMinor: input.amount ? Math.round(input.amount * 100) : null,
+      currency: input.currency?.toUpperCase() || null,
+      categoryId: input.categoryId || null,
+    })
+    .returning()
+
+  return {
+    id: created.id,
+    title: created.title,
+    description: created.description,
+    imageUrl: created.imageUrl,
+    url: created.url,
+    plannedDate: created.plannedDate,
+    isBought: created.isBought,
+    amountMinor: created.amountMinor,
+    currency: created.currency,
+    categoryId: created.categoryId,
+    boughtTransactionId: created.boughtTransactionId,
+  }
+}
+
+export async function updateWishlistItem(
+  user: AuthUser,
+  input: z.infer<typeof wishlistItemUpdate>,
+): Promise<{ item: WishlistItem; transaction?: Transaction; deletedTransactionId?: string }> {
+  const database = assertDatabase()
+
+  // Fetch existing item to check boughtTransactionId before unmarking
+  const [existing] = await database
+    .select()
+    .from(wishlistItemsTable)
+    .where(
+      and(eq(wishlistItemsTable.id, input.id), eq(wishlistItemsTable.userId, user.id)),
+    )
+    .limit(1)
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!existing) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Wishlist item not found' })
+  }
+
+  let deletedTransactionId: string | undefined
+
+  // If unmarking as bought, delete the linked transaction
+  if (input.isBought === false && existing.boughtTransactionId) {
+    await database
+      .delete(transactionsTable)
+      .where(
+        and(
+          eq(transactionsTable.id, existing.boughtTransactionId),
+          eq(transactionsTable.userId, user.id),
+        ),
+      )
+    deletedTransactionId = existing.boughtTransactionId
+  }
+
+  const values: Record<string, unknown> = { updatedAt: new Date() }
+  if (input.title !== undefined) values.title = input.title
+  if (input.description !== undefined) values.description = input.description || null
+  if (input.imageUrl !== undefined) values.imageUrl = input.imageUrl || null
+  if (input.url !== undefined) values.url = input.url || null
+  if (input.plannedDate !== undefined) values.plannedDate = input.plannedDate || null
+  if (input.isBought !== undefined) values.isBought = input.isBought
+  if (input.amount !== undefined) values.amountMinor = Math.round(input.amount * 100)
+  if (input.currency !== undefined) values.currency = input.currency.toUpperCase()
+  if (input.categoryId !== undefined) values.categoryId = input.categoryId || null
+
+  // If unmarking, clear the boughtTransactionId
+  if (input.isBought === false && existing.boughtTransactionId) {
+    values.boughtTransactionId = null
+  }
+
+  const [updated] = await database
+    .update(wishlistItemsTable)
+    .set(values)
+    .where(
+      and(eq(wishlistItemsTable.id, input.id), eq(wishlistItemsTable.userId, user.id)),
+    )
+    .returning()
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!updated) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Wishlist item not found' })
+  }
+
+  let transaction: Transaction | undefined
+
+  // If marked as bought and user wants to create a transaction
+  if (input.createTransaction && input.isBought && updated.amountMinor && updated.currency) {
+    const today = new Date().toISOString().slice(0, 10)
+    const categoryRows = await database
+      .select()
+      .from(categoriesTable)
+      .where(
+        and(
+          eq(categoriesTable.userId, user.id),
+          ...(updated.categoryId ? [eq(categoriesTable.id, updated.categoryId)] : []),
+        ),
+      )
+      .limit(1)
+
+    const category = categoryRows[0]
+
+    const [createdTx] = await database
+      .insert(transactionsTable)
+      .values({
+        userId: user.id,
+        categoryId: updated.categoryId ?? null,
+        type: 'expense',
+        amountMinor: updated.amountMinor,
+        currency: updated.currency,
+        operationDate: today,
+        note: updated.title,
+        labels: [],
+      })
+      .returning()
+
+    // Link the transaction to the wishlist item
+    await database
+      .update(wishlistItemsTable)
+      .set({ boughtTransactionId: createdTx.id, updatedAt: new Date() })
+      .where(eq(wishlistItemsTable.id, updated.id))
+
+    transaction = {
+      id: createdTx.id,
+      type: createdTx.type,
+      categoryId: createdTx.categoryId ?? '',
+      categoryName: category?.name ?? 'Uncategorized',
+      categoryIcon: category?.icon ?? '•',
+      amountMinor: createdTx.amountMinor,
+      currency: createdTx.currency,
+      operationDate: createdTx.operationDate,
+      note: createdTx.note,
+      labels: createdTx.labels,
+      photoUrl: createdTx.photoUrl,
+    }
+  }
+
+  return {
+    item: {
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      imageUrl: updated.imageUrl,
+      url: updated.url,
+      plannedDate: updated.plannedDate,
+      isBought: updated.isBought,
+      amountMinor: updated.amountMinor,
+      currency: updated.currency,
+      categoryId: updated.categoryId,
+      boughtTransactionId: updated.boughtTransactionId,
+    },
+    transaction,
+    deletedTransactionId,
+  }
+}
+
+export async function deleteWishlistItem(user: AuthUser, itemId: string) {
+  const database = assertDatabase()
+
+  await database
+    .delete(wishlistItemsTable)
+    .where(
+      and(eq(wishlistItemsTable.id, itemId), eq(wishlistItemsTable.userId, user.id)),
+    )
 }
 
 export async function validateApiKey(apiKey: string): Promise<AuthUser | null> {

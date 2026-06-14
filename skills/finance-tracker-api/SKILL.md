@@ -47,6 +47,11 @@ The user must generate one from **Settings → API Key** inside the finance trac
 | `GET` | `/api/v1/labels` | List labels |
 | `POST` | `/api/v1/labels` | Create a label |
 | `DELETE` | `/api/v1/labels/:id` | Delete a label |
+| `GET` | `/api/v1/wishlist` | List wishlist items |
+| `GET` | `/api/v1/wishlist/:id` | Get one wishlist item |
+| `POST` | `/api/v1/wishlist` | Create a wishlist item |
+| `PUT` | `/api/v1/wishlist/:id` | Update a wishlist item (including mark bought + create tx) |
+| `DELETE` | `/api/v1/wishlist/:id` | Delete a wishlist item |
 | `GET` | `/api/v1/aggregated?period=month&date=2024-06-01` | Summary + chart points + transactions for a period (`year`, `month`, or `week`; `date` defaults to today) |
 
 POST bodies use the same field names as the CLI flags below. The aggregated endpoint returns `summary.spent/gained` in cents, `chart[].spent/gained` in main units.
@@ -110,6 +115,17 @@ finances-cli labels create [options]
 finances-cli labels delete <id>
 ```
 `create` options: `-n --name` (required)
+
+**wishlist**
+```
+finances-cli wishlist list
+finances-cli wishlist get <id>
+finances-cli wishlist create [options]
+finances-cli wishlist update <id> [options]
+finances-cli wishlist delete <id>
+```
+`create` options: `-t --title` (required), `-d --description`, `-i --image-url`, `-u --url`, `-p --planned-date`, `-a --amount`, `-C --currency`, `-c --category-id`
+`update` options: same as create plus `--bought` (mark as bought), `--create-tx` (create transaction when marking bought)
 
 **aggregated**
 ```

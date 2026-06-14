@@ -65,6 +65,31 @@ export const labelInput = z.object({
   name: z.string().min(1).max(32),
 })
 
+export const wishlistItemInput = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+  url: z.string().url().optional().or(z.literal('')),
+  plannedDate: z.string().min(10).optional(),
+  amount: z.coerce.number().positive().optional(),
+  currency: z.string().min(3).max(3).optional(),
+  categoryId: z.string().min(1).optional(),
+})
+
+export const wishlistItemUpdate = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+  url: z.string().url().optional().or(z.literal('')),
+  plannedDate: z.string().min(10).optional(),
+  isBought: z.boolean().optional(),
+  amount: z.coerce.number().positive().optional(),
+  currency: z.string().min(3).max(3).optional(),
+  categoryId: z.string().min(1).optional(),
+  createTransaction: z.boolean().optional(),
+})
+
 export const profileInput = z.object({
   defaultCurrency: z.string().min(3).max(3).optional(),
   displayName: z.string().max(60).optional(),

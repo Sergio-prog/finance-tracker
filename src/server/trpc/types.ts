@@ -45,6 +45,20 @@ export type Label = {
   name: string
 }
 
+export type WishlistItem = {
+  id: string
+  title: string
+  description: string | null
+  imageUrl: string | null
+  url: string | null
+  plannedDate: string | null
+  isBought: boolean
+  amountMinor: number | null
+  currency: string | null
+  categoryId: string | null
+  boughtTransactionId: string | null
+}
+
 export type Profile = {
   email: string
   displayName: string | null
@@ -63,4 +77,5 @@ export type DashboardData = {
   transactions: Transaction[]
   subscriptions: Subscription[]
   labels: Label[]
+  wishlistItems: WishlistItem[]
 }

@@ -20,10 +20,13 @@ import {
   createLabel,
   createSubscription,
   createTransaction,
+  createWishlistItem,
   deleteLabel,
   deleteSubscription,
   deleteTransaction,
+  deleteWishlistItem,
   getDashboard,
+  updateWishlistItem,
   validateApiKey,
 } from '@/server/trpc/repository'
 import {
@@ -31,6 +34,8 @@ import {
   labelInput,
   subscriptionInput,
   transactionInput,
+  wishlistItemInput,
+  wishlistItemUpdate,
 } from '@/server/trpc/validators'
 
 // Boot the in-process scheduler that auto-creates subscription transactions
@@ -57,7 +62,7 @@ async function handleApiRequest(request: Request) {
       status: 204,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'X-API-Key, Content-Type',
       },
     })
@@ -214,6 +219,40 @@ async function handleApiRequest(request: Request) {
         break
       }
 
+      case 'wishlist': {
+        const dashboard = await getDashboard(user)
+
+        if (request.method === 'GET') {
+          if (id) {
+            const item = dashboard.wishlistItems.find((w) => w.id === id)
+            if (!item) return jsonError('Wishlist item not found', 404)
+            return json(item)
+          }
+          return json({ wishlistItems: dashboard.wishlistItems })
+        }
+
+        if (request.method === 'POST') {
+          const body = await request.json()
+          const validated = wishlistItemInput.parse(body)
+          const created = await createWishlistItem(user, validated)
+          return json(created, 201)
+        }
+
+        if (request.method === 'PUT' && id) {
+          const body = await request.json()
+          const validated = wishlistItemUpdate.parse({ ...body, id })
+          const result = await updateWishlistItem(user, validated)
+          return json(result)
+        }
+
+        if (request.method === 'DELETE' && id) {
+          await deleteWishlistItem(user, id)
+          return json({ deleted: id })
+        }
+
+        break
+      }
+
       case 'aggregated': {
         if (request.method !== 'GET') break
 
@@ -289,6 +328,7 @@ export const Route = createFileRoute('/api/v1/$')({
     handlers: {
       GET: ({ request }) => handleApiRequest(request),
       POST: ({ request }) => handleApiRequest(request),
+      PUT: ({ request }) => handleApiRequest(request),
       DELETE: ({ request }) => handleApiRequest(request),
       OPTIONS: ({ request }) => handleApiRequest(request),
     },

@@ -7,6 +7,7 @@ import type {
   Profile,
   Subscription,
   Transaction,
+  WishlistItem,
 } from '@/server/trpc/types'
 import { supabase } from '@/lib/supabase'
 import { trpc } from '@/trpc/client'
@@ -189,6 +190,54 @@ export function useFinanceData() {
         await trpc.revokeApiKey.mutate()
         setApiKeyInfo({ prefix: null, createdAt: null })
       },
+      createWishlistItem: async (
+        input: Parameters<typeof trpc.createWishlistItem.mutate>[0],
+      ) => {
+        const created = await trpc.createWishlistItem.mutate(input)
+        setData((current) =>
+          current
+            ? {
+                ...current,
+                wishlistItems: [created, ...current.wishlistItems],
+              }
+            : current,
+        )
+      },
+      updateWishlistItem: async (
+        input: Parameters<typeof trpc.updateWishlistItem.mutate>[0],
+      ) => {
+        const result = await trpc.updateWishlistItem.mutate(input)
+        setData((current) => {
+          if (!current) return current
+          let nextTransactions = current.transactions
+          if (result.transaction) {
+            nextTransactions = [result.transaction, ...nextTransactions]
+          }
+          if (result.deletedTransactionId) {
+            nextTransactions = nextTransactions.filter(
+              (t) => t.id !== result.deletedTransactionId,
+            )
+          }
+          return {
+            ...current,
+            wishlistItems: current.wishlistItems.map((w) =>
+              w.id === result.item.id ? result.item : w,
+            ),
+            transactions: nextTransactions,
+          }
+        })
+      },
+      deleteWishlistItem: async (id: string) => {
+        await trpc.deleteWishlistItem.mutate({ id })
+        setData((current) =>
+          current
+            ? {
+                ...current,
+                wishlistItems: current.wishlistItems.filter((w) => w.id !== id),
+              }
+            : current,
+        )
+      },
     }),
     [],
   )
@@ -199,6 +248,7 @@ export function useFinanceData() {
     transactions: data?.transactions ?? ([] as Transaction[]),
     subscriptions: data?.subscriptions ?? ([] as Subscription[]),
     labels: data?.labels ?? ([] as Label[]),
+    wishlistItems: data?.wishlistItems ?? ([] as WishlistItem[]),
     apiKeyInfo,
     isLoading,
     error,

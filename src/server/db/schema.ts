@@ -172,6 +172,40 @@ export const whitelistedEmails = pgTable(
   },
 )
 
+export const wishlistItems = pgTable(
+  'wishlist_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    imageUrl: text('image_url'),
+    url: text('url'),
+    plannedDate: date('planned_date'),
+    isBought: boolean('is_bought').notNull().default(false),
+    amountMinor: integer('amount_minor'),
+    currency: text('currency'),
+    categoryId: uuid('category_id').references(() => categories.id, {
+      onDelete: 'set null',
+    }),
+    boughtTransactionId: uuid('bought_transaction_id').references(
+      () => transactions.id,
+      { onDelete: 'set null' },
+    ),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('wishlist_user_bought_idx').on(table.userId, table.isBought),
+  ],
+)
+
 export const exchangeRates = pgTable('exchange_rates', {
   id: uuid('id').primaryKey().defaultRandom(),
   baseCurrency: text('base_currency').notNull(),

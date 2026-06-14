@@ -3,8 +3,10 @@ import { addDays, format, startOfMonth, subDays, subMonths } from 'date-fns'
 import type {
   Category,
   DashboardData,
+  Label,
   Subscription,
   Transaction,
+  WishlistItem,
 } from './types'
 
 export const categories: Category[] = [
@@ -109,6 +111,7 @@ export const subscriptions: Subscription[] = [
     currency: 'USD',
     billingDay: 12,
     nextChargeDate: format(addDays(today, 6), 'yyyy-MM-dd'),
+    billingFrequency: 'monthly',
     status: 'active',
     autoCreateTransactions: true,
   },
@@ -120,6 +123,7 @@ export const subscriptions: Subscription[] = [
     currency: 'USD',
     billingDay: 18,
     nextChargeDate: format(addDays(today, 12), 'yyyy-MM-dd'),
+    billingFrequency: 'monthly',
     status: 'active',
     autoCreateTransactions: true,
   },
@@ -131,13 +135,29 @@ export const subscriptions: Subscription[] = [
     currency: 'USD',
     billingDay: 2,
     nextChargeDate: format(addDays(today, 26), 'yyyy-MM-dd'),
+    billingFrequency: 'monthly',
     status: 'paused',
     autoCreateTransactions: false,
   },
 ]
 
+export const labels: Label[] = [
+  { id: 'lbl-1', name: 'Must haves' },
+  { id: 'lbl-2', name: 'Work' },
+  { id: 'lbl-3', name: 'Family' },
+]
+
+export const wishlistItems: WishlistItem[] = []
+
 export const dashboardData: DashboardData = {
+  profile: {
+    email: 'demo@example.com',
+    displayName: 'Demo User',
+    defaultCurrency: 'USD',
+  },
   categories,
   transactions,
   subscriptions,
+  labels,
+  wishlistItems,
 }

@@ -310,6 +310,102 @@ labels
     }),
   )
 
+// ── wishlist ─────────────────────────────────────────────
+const wishlist = program
+  .command('wishlist')
+  .description('Manage wishlist items')
+
+wishlist
+  .command('list')
+  .description('List all wishlist items')
+  .action(
+    run(async () => {
+      const client = getClient()
+      const data = await client.get('/api/v1/wishlist')
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+wishlist
+  .command('get <id>')
+  .description('Get a wishlist item by ID')
+  .action(
+    run(async (id: string) => {
+      const client = getClient()
+      const data = await client.get(`/api/v1/wishlist/${id}`)
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+wishlist
+  .command('create')
+  .description('Create a wishlist item')
+  .requiredOption('-t, --title <title>', 'Item title')
+  .option('-d, --description <text>', 'Description')
+  .option('-i, --image-url <url>', 'Image URL')
+  .option('-u, --url <url>', 'Link to buy')
+  .option('-p, --planned-date <date>', 'Planned buy date (YYYY-MM-DD)')
+  .option('-a, --amount <amount>', 'Price')
+  .option('-C, --currency <code>', '3-letter currency code')
+  .option('-c, --category-id <id>', 'Category UUID for transaction')
+  .action(
+    run(async (opts: Record<string, string>) => {
+      const client = getClient()
+      const body: Record<string, unknown> = { title: opts.title }
+      if (opts.description) body.description = opts.description
+      if (opts.imageUrl) body.imageUrl = opts.imageUrl
+      if (opts.url) body.url = opts.url
+      if (opts.plannedDate) body.plannedDate = opts.plannedDate
+      if (opts.amount) body.amount = Number(opts.amount)
+      if (opts.currency) body.currency = opts.currency.toUpperCase()
+      if (opts.categoryId) body.categoryId = opts.categoryId
+      const data = await client.post('/api/v1/wishlist', body)
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+wishlist
+  .command('update <id>')
+  .description('Update a wishlist item')
+  .option('-t, --title <title>', 'Item title')
+  .option('-d, --description <text>', 'Description')
+  .option('-i, --image-url <url>', 'Image URL')
+  .option('-u, --url <url>', 'Link to buy')
+  .option('-p, --planned-date <date>', 'Planned buy date (YYYY-MM-DD)')
+  .option('-a, --amount <amount>', 'Price')
+  .option('-C, --currency <code>', '3-letter currency code')
+  .option('-c, --category-id <id>', 'Category UUID')
+  .option('--bought', 'Mark as bought')
+  .option('--create-tx', 'Create transaction when marking bought')
+  .action(
+    run(async (id: string, opts: Record<string, string>) => {
+      const client = getClient()
+      const body: Record<string, unknown> = {}
+      if (opts.title) body.title = opts.title
+      if (opts.description !== undefined) body.description = opts.description || null
+      if (opts.imageUrl !== undefined) body.imageUrl = opts.imageUrl || null
+      if (opts.url !== undefined) body.url = opts.url || null
+      if (opts.plannedDate !== undefined) body.plannedDate = opts.plannedDate || null
+      if (opts.amount) body.amount = Number(opts.amount)
+      if (opts.currency) body.currency = opts.currency.toUpperCase()
+      if (opts.categoryId !== undefined) body.categoryId = opts.categoryId || null
+      if (opts.bought) { body.isBought = true; if (opts.createTx) body.createTransaction = true }
+      const data = await client.put(`/api/v1/wishlist/${id}`, body)
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+wishlist
+  .command('delete <id>')
+  .description('Delete a wishlist item')
+  .action(
+    run(async (id: string) => {
+      const client = getClient()
+      const data = await client.delete(`/api/v1/wishlist/${id}`)
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
 // ── aggregated ───────────────────────────────────────────
 program
   .command('aggregated')

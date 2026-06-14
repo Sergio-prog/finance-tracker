@@ -15,6 +15,10 @@ export class FinancesClient {
     return this.request('POST', path, body)
   }
 
+  async put(path: string, body?: unknown) {
+    return this.request('PUT', path, body)
+  }
+
   async delete(path: string) {
     return this.request('DELETE', path)
   }

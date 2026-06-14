@@ -9,9 +9,11 @@ import {
   createLabel,
   createSubscription,
   createTransaction,
+  createWishlistItem,
   deleteLabel,
   deleteSubscription,
   deleteTransaction,
+  deleteWishlistItem,
   getApiKeyInfo,
   getDashboard,
   processSubscriptions,
@@ -20,6 +22,7 @@ import {
   updateProfile,
   updateSubscription,
   updateTransaction,
+  updateWishlistItem,
 } from './repository'
 import {
   categoryInput,
@@ -29,6 +32,8 @@ import {
   subscriptionUpdate,
   transactionInput,
   transactionUpdate,
+  wishlistItemInput,
+  wishlistItemUpdate,
 } from './validators'
 
 export async function createContext({
@@ -94,6 +99,15 @@ export const appRouter = t.router({
   deleteSubscription: authenticatedProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(({ ctx, input }) => deleteSubscription(ctx.user, input.id)),
+  createWishlistItem: authenticatedProcedure
+    .input(wishlistItemInput)
+    .mutation(({ ctx, input }) => createWishlistItem(ctx.user, input)),
+  updateWishlistItem: authenticatedProcedure
+    .input(wishlistItemUpdate)
+    .mutation(({ ctx, input }) => updateWishlistItem(ctx.user, input)),
+  deleteWishlistItem: authenticatedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(({ ctx, input }) => deleteWishlistItem(ctx.user, input.id)),
   getApiKey: authenticatedProcedure.query(({ ctx }) => getApiKeyInfo(ctx.user)),
   regenerateApiKey: authenticatedProcedure.mutation(({ ctx }) =>
     regenerateApiKey(ctx.user),

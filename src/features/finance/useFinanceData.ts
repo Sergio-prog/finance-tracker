@@ -4,7 +4,6 @@ import type {
   Category,
   DashboardData,
   Label,
-  Profile,
   Subscription,
   Transaction,
   WishlistItem,
@@ -14,7 +13,7 @@ import { trpc } from '@/trpc/client'
 
 export type ApiKeyInfo = {
   prefix: string | null
-  createdAt: Date | null
+  createdAt: string | null
 }
 
 export function useFinanceData() {

@@ -38,7 +38,6 @@ function handleError(err: unknown) {
   process.exit(1)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function run(fn: (...args: any[]) => Promise<void>) {
   return (...args: any[]) => {
     fn(...args).catch(handleError)
@@ -243,6 +242,7 @@ subscriptions
       if (opts.categoryId) body.categoryId = opts.categoryId
       if (opts.billingDay) body.billingDay = Number(opts.billingDay)
       if (opts.notes) body.notes = opts.notes
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (opts.auto !== undefined)
         body.autoCreateTransactions = opts.auto !== 'false'
       const data = await client.post('/api/v1/subscriptions', body)
@@ -383,12 +383,17 @@ wishlist
       const client = getClient()
       const body: Record<string, unknown> = {}
       if (opts.title) body.title = opts.title
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (opts.description !== undefined) body.description = opts.description || null
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (opts.imageUrl !== undefined) body.imageUrl = opts.imageUrl || null
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (opts.url !== undefined) body.url = opts.url || null
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (opts.plannedDate !== undefined) body.plannedDate = opts.plannedDate || null
       if (opts.amount) body.amount = Number(opts.amount)
       if (opts.currency) body.currency = opts.currency.toUpperCase()
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (opts.categoryId !== undefined) body.categoryId = opts.categoryId || null
       if (opts.bought) { body.isBought = true; if (opts.createTx) body.createTransaction = true }
       const data = await client.put(`/api/v1/wishlist/${id}`, body)

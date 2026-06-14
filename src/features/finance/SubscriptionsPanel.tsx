@@ -2,7 +2,6 @@ import {
   CalendarClock,
   CreditCard,
   MoreHorizontal,
-  Repeat2,
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'

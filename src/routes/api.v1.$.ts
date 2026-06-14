@@ -4,7 +4,6 @@ import { z } from 'zod'
 
 import { db, hasDatabase } from '@/server/db/client'
 import {
-  categories as categoriesTable,
   profiles as profilesTable,
 } from '@/server/db/schema'
 import {

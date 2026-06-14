@@ -6,7 +6,6 @@ import { TRPCError } from '@trpc/server'
 import { db, hasDatabase } from '../db/client'
 import {
   apiKeys as apiKeysTable,
-  billingFrequency as billingFrequencyEnum,
   categories as categoriesTable,
   labels as labelsTable,
   profiles as profilesTable,
@@ -519,18 +518,7 @@ export async function processSubscriptions(user: AuthUser) {
       ),
     )
 
-  const categoryRows = await database
-    .select()
-    .from(categoriesTable)
-    .where(eq(categoriesTable.userId, user.id))
-
-  const categoryMap = new Map(categoryRows.map((c) => [c.id, c]))
-
   for (const subscription of due) {
-    const category = subscription.categoryId
-      ? categoryMap.get(subscription.categoryId)
-      : undefined
-
     await database.insert(transactionsTable).values({
       userId: user.id,
       categoryId: subscription.categoryId,
@@ -924,7 +912,9 @@ export async function updateWishlistItem(
       id: createdTx.id,
       type: createdTx.type,
       categoryId: createdTx.categoryId ?? '',
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       categoryName: category?.name ?? 'Uncategorized',
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       categoryIcon: category?.icon ?? '•',
       amountMinor: createdTx.amountMinor,
       currency: createdTx.currency,

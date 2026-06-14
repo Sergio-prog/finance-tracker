@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { startSubscriptionScheduler } from '@/server/scheduler'
 import { db, hasDatabase } from '@/server/db/client'
 import {
   categories as categoriesTable,
@@ -37,9 +36,6 @@ import {
   wishlistItemInput,
   wishlistItemUpdate,
 } from '@/server/trpc/validators'
-
-// Boot the in-process scheduler that auto-creates subscription transactions
-startSubscriptionScheduler()
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {

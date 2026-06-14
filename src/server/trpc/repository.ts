@@ -642,6 +642,11 @@ export async function updateTransaction(
     .where(eq(transactionsTable.id, input.id))
     .returning()
 
+  // Sync new labels to the labels table
+  if (input.labels && input.labels.length > 0) {
+    await syncLabels(user.id, input.labels)
+  }
+
   const dashboard = await getDashboard(user)
   const category = dashboard.categories.find((c) => c.id === updated.categoryId)
 

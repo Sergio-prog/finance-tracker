@@ -16,7 +16,7 @@
 
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { eq, inArray } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import * as schema from '../src/server/db/schema'
 
 // ─── Parse args ───────────────────────────────────────────────────────────
@@ -138,6 +138,7 @@ async function main() {
       .where(eq(schema.profiles.id, resolvedUserId))
       .limit(1)
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!profile) {
       console.error(`No profile found for userId: ${resolvedUserId}`)
       await client.end()
@@ -149,9 +150,10 @@ async function main() {
     const [existing] = await db
       .select()
       .from(schema.profiles)
-      .where(eq(schema.profiles.email, email!))
+      .where(eq(schema.profiles.email, email))
       .limit(1)
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (existing) {
       resolvedUserId = existing.id
       console.log(`✅ Found existing user: ${existing.email} (${existing.id})`)
@@ -161,8 +163,8 @@ async function main() {
         .insert(schema.profiles)
         .values({
           id: crypto.randomUUID(),
-          email: email!,
-          displayName: email!.split('@')[0],
+          email: email,
+          displayName: email.split('@')[0],
         })
         .returning()
 
@@ -250,7 +252,7 @@ async function main() {
 
     // Note
     const notes = isExpense ? expenseNotes[catName] : incomeNotes[catName]
-    const note = notes ? pick(notes) : `${catName} - ${dateStr}`
+    const note = pick(notes)
 
     // Labels (about 30% of transactions have them)
     const labels = Math.random() < 0.3 ? [pick(labelPool)] : []

@@ -194,8 +194,8 @@ export function FinanceApp() {
                             labelOptions={labelOptions}
                             onCreate={addTransaction}
                             onCreateCategory={addCategory}
-                            onAddLabel={addLabel}
-                            initial={editingTx}
+                            onAddLabel={(name: string) => addLabel({ name })}
+                            initial={editingTx ?? undefined}
                             onUpdate={updateTransaction}
                             onDelete={deleteTransaction}
                             onClose={() => setEditingTx(null)}
@@ -253,7 +253,7 @@ export function FinanceApp() {
                           onBgAnimationChange={setBgAnimation}
                           profile={profile}
                           labels={labels}
-                          onAddLabel={addLabel}
+                          onAddLabel={async (input) => { await addLabel(input) }}
                           onRemoveLabel={removeLabel}
                           onSaveProfile={saveProfile}
                           apiKeyInfo={apiKeyInfo}

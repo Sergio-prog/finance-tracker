@@ -83,7 +83,6 @@ export function WishlistDialog({
     setCurrency(initial.currency ?? 'USD')
     setPlannedDate(initial.plannedDate ? new Date(initial.plannedDate) : undefined)
     setSelectedCategoryId(initial.categoryId || '__none__')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

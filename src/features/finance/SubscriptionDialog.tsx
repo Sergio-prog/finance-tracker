@@ -115,7 +115,7 @@ export function SubscriptionDialog({
     try {
       if (isEditing && onUpdate) {
         await onUpdate({
-          id: initial.id,
+          id: initial!.id,
           name: String(form.get('name') ?? ''),
           categoryId: selectedCategoryId || undefined,
           amount: Number(form.get('amount') ?? 0),
@@ -181,6 +181,7 @@ export function SubscriptionDialog({
                   size="icon-lg"
                   className="text-red-400 hover:bg-black/10 hover:text-red-300"
                   onClick={() => {
+                    if (!initial) return
                     onDelete(initial.id)
                     setOpen(false)
                   }}

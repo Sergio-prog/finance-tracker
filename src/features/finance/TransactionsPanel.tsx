@@ -21,8 +21,8 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { itemMotion, listMotion, pageMotion, tapMotion } from './animations'
 import { formatCompactMoney, formatMoney } from './format'
+import type { ViewMode } from './metrics'
 import {
-  type ViewMode,
   filterTransactionsByPeriod,
   getChartInterval,
   getPeriodBounds,
@@ -80,10 +80,12 @@ export function TransactionsPanel({
       ),
     [filteredTransactions, chartInterval, bounds],
   )
+  /* eslint-disable @typescript-eslint/no-unnecessary-condition */
   const currency =
     filteredTransactions[0]?.currency ??
     transactions[0]?.currency ??
     'USD'
+  /* eslint-enable @typescript-eslint/no-unnecessary-condition */
   const hasTransactions = filteredTransactions.length > 0
   const periodLabel = getPeriodLabel(anchorDate, viewMode)
   const atCurrentPeriod = isCurrentPeriod(bounds, viewMode)

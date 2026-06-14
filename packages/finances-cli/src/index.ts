@@ -38,8 +38,9 @@ function handleError(err: unknown) {
   process.exit(1)
 }
 
-function run(fn: (...args: unknown[]) => Promise<void>) {
-  return (...args: unknown[]) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function run(fn: (...args: any[]) => Promise<void>) {
+  return (...args: any[]) => {
     fn(...args).catch(handleError)
   }
 }

@@ -98,20 +98,18 @@ export function OperationDialog({
 
   useEffect(() => {
     if (!initial) return
+    const i = initial
     setOpen(true)
-    setType(initial.type)
-    setDate(new Date(initial.operationDate))
-    setLabels(initial.labels)
-    setCurrency(initial.currency)
-    setSelectedCategoryId(initial.categoryId)
+    setType(i.type)
+    setDate(new Date(i.operationDate))
+    setLabels(i.labels)
+    setCurrency(i.currency)
+    setSelectedCategoryId(i.categoryId)
   }, [initial])
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.type === type),
     [categories, type],
-  )
-  const selectedCategory = filteredCategories.find(
-    (category) => category.id === selectedCategoryId,
   )
 
   useEffect(() => {
@@ -133,7 +131,7 @@ export function OperationDialog({
     try {
       if (isEditing && onUpdate) {
         await onUpdate({
-          id: initial.id,
+          id: initial!.id,
           type,
           categoryId: selectedCategoryId,
           amount: Number(form.get('amount') ?? 0),
@@ -202,6 +200,7 @@ export function OperationDialog({
                   size="icon-lg"
                   className="text-red-400 hover:bg-black/10 hover:text-red-300"
                   onClick={() => {
+                    if (!initial) return
                     onDelete(initial.id)
                     setOpen(false)
                   }}

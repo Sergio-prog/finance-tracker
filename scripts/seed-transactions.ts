@@ -16,7 +16,7 @@
 
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { eq, inArray } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import * as schema from '../src/server/db/schema'
 
 // ─── Parse args ───────────────────────────────────────────────────────────

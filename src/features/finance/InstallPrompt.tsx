@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
-  prompt(): Promise<{ outcome: 'accepted' | 'dismissed' }>
+  prompt: () => Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
 declare global {

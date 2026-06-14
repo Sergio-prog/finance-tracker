@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { pageMotion } from './animations'
+import { InstallPrompt } from './InstallPrompt'
 import { OperationDialog } from './OperationDialog'
 import { SettingsPanel } from './SettingsPanel'
 import { SubscriptionsPanel } from './SubscriptionsPanel'
@@ -144,6 +145,7 @@ export function FinanceApp() {
                 </div>
               </div>
               <div className="hidden items-center gap-2 md:flex">
+                <InstallPrompt />
                 <Button
                   variant="outline"
                   size="icon"

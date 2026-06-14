@@ -34,11 +34,6 @@
 <br />
 
 <p align="center">
-  <img src="public/logo.svg" alt="Ledger" width="48" height="48"/>
-</p>
-
-> **Screenshot coming soon** — run the project locally to see it in action.
-<p align="center">
   <img src="public/app-screenshot.png" alt="screenshot of app" />
 </p>
 
@@ -70,8 +65,6 @@
   <dt>🏷️ Labels & Categories</dt>
   <dd>Organize transactions with custom categories (each with its own icon and color) and freeform labels for cross-cutting tags.</dd>
 
-  <dt>📱 Mobile-First UI</dt>
-  <dd>Responsive layout with a bottom navigation bar on mobile and a sidebar on desktop. Designed to work as a PWA — add it to your home screen.</dd>
 
   <dt>🔐 Self-Hosted & Private</dt>
   <dd>Your data stays in your Supabase instance. Authentication via Google OAuth. No third-party analytics or tracking.</dd>

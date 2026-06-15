@@ -502,6 +502,33 @@ export async function updateProfile(
   }
 }
 
+/**
+ * Advance a billing date by the given frequency, clamping to the last valid
+ * day of the resulting month. Without clamping, JS's setMonth rolls over:
+ *   Jan 31 + 1 month → Feb 31 → Mar 3 (skips February entirely).
+ */
+function getNextBillingDate(
+  currentDateStr: string,
+  billingFrequency: 'monthly' | 'yearly',
+): string {
+  const date = new Date(currentDateStr)
+  const originalDay = date.getDate()
+
+  if (billingFrequency === 'yearly') {
+    date.setFullYear(date.getFullYear() + 1)
+  } else {
+    date.setMonth(date.getMonth() + 1)
+  }
+
+  // If the day rolled over (e.g. Jan 31 → Mar 3 instead of Feb 28),
+  // clamp to the last valid day of the target month.
+  if (date.getDate() !== originalDay) {
+    date.setDate(0)
+  }
+
+  return date.toISOString().slice(0, 10)
+}
+
 export async function processSubscriptions(user: AuthUser) {
   const database = assertDatabase()
   const today = new Date().toISOString().slice(0, 10)
@@ -532,13 +559,10 @@ export async function processSubscriptions(user: AuthUser) {
       labels: [],
     })
 
-    const nextDate = new Date(subscription.nextChargeDate)
-    if (subscription.billingFrequency === 'yearly') {
-      nextDate.setFullYear(nextDate.getFullYear() + 1)
-    } else {
-      nextDate.setMonth(nextDate.getMonth() + 1)
-    }
-    const nextDateStr = nextDate.toISOString().slice(0, 10)
+    const nextDateStr = getNextBillingDate(
+      subscription.nextChargeDate,
+      subscription.billingFrequency,
+    )
 
     await database
       .update(subscriptionsTable)
@@ -577,13 +601,10 @@ export async function processAllSubscriptions() {
       labels: [],
     })
 
-    const nextDate = new Date(subscription.nextChargeDate)
-    if (subscription.billingFrequency === 'yearly') {
-      nextDate.setFullYear(nextDate.getFullYear() + 1)
-    } else {
-      nextDate.setMonth(nextDate.getMonth() + 1)
-    }
-    const nextDateStr = nextDate.toISOString().slice(0, 10)
+    const nextDateStr = getNextBillingDate(
+      subscription.nextChargeDate,
+      subscription.billingFrequency,
+    )
 
     await database
       .update(subscriptionsTable)

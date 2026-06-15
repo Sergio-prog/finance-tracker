@@ -37,6 +37,10 @@ export const Route = createRootRoute({
         href: '/logo192.png',
       },
       {
+        rel: 'manifest',
+        href: '/manifest.json',
+      },
+      {
         rel: 'stylesheet',
         href: appCss,
       },

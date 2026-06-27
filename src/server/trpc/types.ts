@@ -71,6 +71,12 @@ export type ChartPoint = {
   gained: number
 }
 
+export type ExchangeRateEntry = {
+  baseCurrency: string
+  quoteCurrency: string
+  rate: number
+}
+
 export type DashboardData = {
   profile: Profile
   categories: Category[]
@@ -78,4 +84,5 @@ export type DashboardData = {
   subscriptions: Subscription[]
   labels: Label[]
   wishlistItems: WishlistItem[]
+  exchangeRates: ExchangeRateEntry[]
 }

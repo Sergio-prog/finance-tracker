@@ -27,13 +27,24 @@ async function run() {
     if (!hasDatabase || !db) return
 
     const { processAllSubscriptions } = await import('./trpc/repository')
-    const result = await processAllSubscriptions()
-    if (result.processed > 0) {
+    const { refreshExchangeRates } = await import('./exchange-rates')
+
+    const [subResult, rateResult] = await Promise.all([
+      processAllSubscriptions(),
+      refreshExchangeRates(),
+    ])
+
+    if (subResult.processed > 0) {
       console.log(
-        `[scheduler] Auto-created ${result.processed} subscription transaction(s)`,
+        `[scheduler] Auto-created ${subResult.processed} subscription transaction(s)`,
+      )
+    }
+    if (rateResult.refreshed > 0) {
+      console.log(
+        `[scheduler] Refreshed ${rateResult.refreshed} exchange rates`,
       )
     }
   } catch (error) {
-    console.error('[scheduler] Failed to process subscriptions:', error)
+    console.error('[scheduler] Failed to process:', error)
   }
 }

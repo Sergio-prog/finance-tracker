@@ -198,7 +198,7 @@ export function WishlistDialog({
               </div>
 
               {/* Price & Currency */}
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                 <div className="grid gap-1.5">
                   <Label className="text-xs">Price (optional)</Label>
                   <Input
@@ -215,33 +215,33 @@ export function WishlistDialog({
                     className="h-12 text-lg font-semibold sm:h-14 sm:text-xl [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                 </div>
-                <div className="pb-0.5">
-                  <Select value={currency} onValueChange={setCurrency}>
-                    <SelectTrigger className="h-10 w-auto min-w-[4.5rem] rounded-md px-3 text-sm font-medium">
-                      <SelectValue>
-                        {getCurrencySymbol(currency)} {currency}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currencies.map((item) => (
-                        <SelectItem key={item.code} value={item.code}>
-                          {item.symbol} {item.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="h-10 w-auto min-w-[4.5rem] rounded-md px-3 text-sm font-medium">
+                    <SelectValue>
+                      {getCurrencySymbol(currency)} {currency}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map((item) => (
+                      <SelectItem key={item.code} value={item.code}>
+                        {item.symbol} {item.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Category */}
               <div className="grid gap-1.5">
                 <Label className="text-xs">Category for transaction (optional)</Label>
-                <CategorySelector
-                  categories={expenseCategories}
-                  selectedCategoryId={selectedCategoryId}
-                  onSelect={setSelectedCategoryId}
-                  type="expense"
-                />
+                <div className="w-fit">
+                  <CategorySelector
+                    categories={expenseCategories}
+                    selectedCategoryId={selectedCategoryId}
+                    onSelect={setSelectedCategoryId}
+                    type="expense"
+                  />
+                </div>
               </div>
 
               {/* Planned date */}

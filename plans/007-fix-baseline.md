@@ -19,6 +19,12 @@
 - **Depends on**: none
 - **Category**: correctness + dx + tests
 - **Planned at**: commit `d3d7ba8`, 2026-06-15
+- **Superseded**: the `billingDay: max(28)` fix in Step 1 was a naive cap that
+  broke valid dates (e.g. Dec 31). It was replaced post-merge by a proper
+  calendar-aware `getNextBillingDate()` helper in `src/server/trpc/repository.ts`
+  that clamps to the last valid day of the target month. The validator now
+  allows `1-31` again. See commit `5bcc8a9`. The other five fixes in this plan
+  stand as written.
 
 ## Why this matters
 

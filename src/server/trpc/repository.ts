@@ -13,10 +13,12 @@ import {
   transactions as transactionsTable,
   wishlistItems as wishlistItemsTable,
 } from '../db/schema'
+import { ensureFreshRates } from '../exchange-rates'
 import type { AuthUser } from '../auth'
 import type {
   Category,
   DashboardData,
+  ExchangeRateEntry,
   Label,
   Profile,
   Subscription,
@@ -216,6 +218,7 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
     labelRows,
     profileRows,
     wishlistRows,
+    ratesMap,
   ] = await Promise.all([
     database
       .select()
@@ -246,6 +249,7 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
       .from(wishlistItemsTable)
       .where(eq(wishlistItemsTable.userId, user.id))
       .orderBy(desc(wishlistItemsTable.createdAt)),
+    ensureFreshRates(),
   ])
 
   let categoryRows =
@@ -326,6 +330,13 @@ export async function getDashboard(user: AuthUser): Promise<DashboardData> {
         currency: item.currency,
         categoryId: item.categoryId,
         boughtTransactionId: item.boughtTransactionId,
+      }),
+    ),
+    exchangeRates: Object.entries(ratesMap).map(
+      ([quoteCurrency, rate]): ExchangeRateEntry => ({
+        baseCurrency: 'USD',
+        quoteCurrency,
+        rate,
       }),
     ),
   }

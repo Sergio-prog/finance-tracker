@@ -132,6 +132,33 @@ transactions
   )
 
 transactions
+  .command('update <id>')
+  .description('Update a transaction')
+  .option('-t, --type <type>', "expense or income")
+  .option('-c, --category-id <id>', 'Category UUID')
+  .option('-a, --amount <amount>', 'Amount in main currency')
+  .option('-C, --currency <code>', '3-letter currency code')
+  .option('-d, --date <date>', 'Operation date (YYYY-MM-DD)')
+  .option('-n, --note <text>', 'Optional note')
+  .option('-l, --labels <labels>', 'Comma-separated labels')
+  .action(
+    run(async (id: string, opts: Record<string, string>) => {
+      const client = getClient()
+      const body: Record<string, unknown> = {}
+      if (opts.type) body.type = opts.type
+      if (opts.categoryId) body.categoryId = opts.categoryId
+      if (opts.amount) body.amount = Number(opts.amount)
+      if (opts.currency) body.currency = opts.currency.toUpperCase()
+      if (opts.date) body.operationDate = opts.date
+      if (opts.note) body.note = opts.note
+      if (opts.labels)
+        body.labels = opts.labels.split(',').map((s: string) => s.trim())
+      const data = await client.put(`/api/v1/transactions/${id}`, body)
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+transactions
   .command('delete <id>')
   .description('Delete a transaction')
   .action(
@@ -246,6 +273,38 @@ subscriptions
       if (opts.auto !== undefined)
         body.autoCreateTransactions = opts.auto !== 'false'
       const data = await client.post('/api/v1/subscriptions', body)
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+subscriptions
+  .command('update <id>')
+  .description('Update a subscription')
+  .option('-n, --name <name>', 'Subscription name')
+  .option('-a, --amount <amount>', 'Amount in main currency')
+  .option('-C, --currency <code>', '3-letter currency code')
+  .option('-d, --next-charge-date <date>', 'Next charge date (YYYY-MM-DD)')
+  .option('-f, --frequency <freq>', "monthly or yearly")
+  .option('-c, --category-id <id>', 'Category UUID')
+  .option('-b, --billing-day <day>', 'Billing day (1-31)')
+  .option('-o, --notes <text>', 'Optional notes')
+  .option('--no-auto', 'Disable auto-creating transactions')
+  .action(
+    run(async (id: string, opts: Record<string, string>) => {
+      const client = getClient()
+      const body: Record<string, unknown> = {}
+      if (opts.name) body.name = opts.name
+      if (opts.amount) body.amount = Number(opts.amount)
+      if (opts.currency) body.currency = opts.currency.toUpperCase()
+      if (opts.nextChargeDate) body.nextChargeDate = opts.nextChargeDate
+      if (opts.frequency) body.billingFrequency = opts.frequency
+      if (opts.categoryId) body.categoryId = opts.categoryId
+      if (opts.billingDay) body.billingDay = Number(opts.billingDay)
+      if (opts.notes) body.notes = opts.notes
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (opts.auto !== undefined)
+        body.autoCreateTransactions = opts.auto !== 'false'
+      const data = await client.put(`/api/v1/subscriptions/${id}`, body)
       output(data, program.getOptionValue('pretty') as boolean)
     }),
   )
@@ -426,6 +485,18 @@ program
       const data = await client.get(
         `/api/v1/aggregated?${params.toString()}`,
       )
+      output(data, program.getOptionValue('pretty') as boolean)
+    }),
+  )
+
+// ── exchange-rates ───────────────────────────────────────
+program
+  .command('exchange-rates')
+  .description('Get latest exchange rates (base USD)')
+  .action(
+    run(async () => {
+      const client = getClient()
+      const data = await client.get('/api/v1/exchange-rates')
       output(data, program.getOptionValue('pretty') as boolean)
     }),
   )

@@ -215,7 +215,7 @@ export function OperationDialog({
           </div>
 
           <div className="px-4 pb-6 pt-5 sm:px-5">
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 sm:gap-4">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
               <CategorySelector
                 categories={filteredCategories}
                 selectedCategoryId={selectedCategoryId}

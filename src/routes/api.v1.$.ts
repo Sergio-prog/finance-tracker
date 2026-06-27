@@ -24,14 +24,19 @@ import {
   deleteTransaction,
   deleteWishlistItem,
   getDashboard,
+  updateSubscription,
+  updateTransaction,
   updateWishlistItem,
   validateApiKey,
 } from '@/server/trpc/repository'
+import { getExchangeRates } from '@/server/exchange-rates'
 import {
   categoryInput,
   labelInput,
   subscriptionInput,
+  subscriptionUpdate,
   transactionInput,
+  transactionUpdate,
   wishlistItemInput,
   wishlistItemUpdate,
 } from '@/server/trpc/validators'
@@ -130,6 +135,13 @@ async function handleApiRequest(request: Request) {
           return json(created, 201)
         }
 
+        if (request.method === 'PUT' && id) {
+          const body = await request.json()
+          const validated = transactionUpdate.parse({ ...body, id })
+          const updated = await updateTransaction(user, validated)
+          return json(updated)
+        }
+
         if (request.method === 'DELETE' && id) {
           await deleteTransaction(user, id)
           return json({ deleted: id })
@@ -177,6 +189,13 @@ async function handleApiRequest(request: Request) {
           const validated = subscriptionInput.parse(body)
           const created = await createSubscription(user, validated)
           return json(created, 201)
+        }
+
+        if (request.method === 'PUT' && id) {
+          const body = await request.json()
+          const validated = subscriptionUpdate.parse({ ...body, id })
+          const updated = await updateSubscription(user, validated)
+          return json(updated)
         }
 
         if (request.method === 'DELETE' && id) {
@@ -293,6 +312,15 @@ async function handleApiRequest(request: Request) {
           summary,
           chart,
           transactions: filtered,
+        })
+      }
+
+      case 'exchange-rates': {
+        if (request.method !== 'GET') break
+        const rates = await getExchangeRates()
+        return json({
+          baseCurrency: 'USD',
+          rates,
         })
       }
     }

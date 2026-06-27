@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type {
   Category,
   DashboardData,
+  ExchangeRateEntry,
   Label,
   Subscription,
   Transaction,
@@ -248,6 +249,7 @@ export function useFinanceData() {
     subscriptions: data?.subscriptions ?? ([] as Subscription[]),
     labels: data?.labels ?? ([] as Label[]),
     wishlistItems: data?.wishlistItems ?? ([] as WishlistItem[]),
+    exchangeRates: data?.exchangeRates ?? ([] as ExchangeRateEntry[]),
     apiKeyInfo,
     isLoading,
     error,

@@ -20,7 +20,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { itemMotion, listMotion, pageMotion, tapMotion } from './animations'
-import { formatCompactMoney, formatMoney } from './format'
+import { formatCompactMoney, formatMoney, buildRateMap, convertAmountMinor, getRateFactor } from './format'
 import type { ViewMode } from './metrics'
 import {
   filterTransactionsByPeriod,
@@ -32,7 +32,7 @@ import {
   shiftPeriod,
   summarizeTransactions,
 } from './metrics'
-import type { Transaction } from '@/server/trpc/types'
+import type { ExchangeRateEntry, Transaction } from '@/server/trpc/types'
 
 const chartConfig = {
   spent: { label: 'Spent', color: 'var(--primary)' },
@@ -41,17 +41,43 @@ const chartConfig = {
 
 type TransactionsPanelProps = {
   transactions: Transaction[]
+  mainCurrency?: string
+  exchangeRates?: ExchangeRateEntry[]
   onEdit?: (transaction: Transaction) => void
   onDelete?: (id: string) => void
 }
 
 export function TransactionsPanel({
   transactions,
+  mainCurrency = 'USD',
+  exchangeRates = [],
   onEdit,
   onDelete,
 }: TransactionsPanelProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month')
   const [anchorDate, setAnchorDate] = useState<Date>(new Date())
+
+  const rateMap = useMemo(
+    () => buildRateMap(exchangeRates),
+    [exchangeRates],
+  )
+
+  // Normalize transactions to main currency for chart & summary
+  const normalizedTransactions = useMemo(
+    () =>
+      transactions.map((tx) => {
+        if (tx.currency === mainCurrency) return tx
+        const converted = convertAmountMinor(
+          tx.amountMinor,
+          tx.currency,
+          mainCurrency,
+          rateMap,
+        )
+        if (converted === null) return tx
+        return { ...tx, amountMinor: converted, currency: mainCurrency }
+      }),
+    [transactions, mainCurrency, rateMap],
+  )
 
   const bounds = useMemo(
     () => getPeriodBounds(anchorDate, viewMode),
@@ -62,8 +88,8 @@ export function TransactionsPanel({
     [viewMode],
   )
   const filteredTransactions = useMemo(
-    () => filterTransactionsByPeriod(transactions, bounds),
-    [transactions, bounds],
+    () => filterTransactionsByPeriod(normalizedTransactions, bounds),
+    [normalizedTransactions, bounds],
   )
   const summary = useMemo(
     () => summarizeTransactions(filteredTransactions),
@@ -84,9 +110,16 @@ export function TransactionsPanel({
   const currency =
     filteredTransactions[0]?.currency ??
     transactions[0]?.currency ??
-    'USD'
+    mainCurrency
   /* eslint-enable @typescript-eslint/no-unnecessary-condition */
   const hasTransactions = filteredTransactions.length > 0
+
+  // Original (non-normalized) transactions filtered for the list display
+  const filteredOriginal = useMemo(
+    () => filterTransactionsByPeriod(transactions, bounds),
+    [transactions, bounds],
+  )
+
   const periodLabel = getPeriodLabel(anchorDate, viewMode)
   const atCurrentPeriod = isCurrentPeriod(bounds, viewMode)
 
@@ -209,7 +242,21 @@ export function TransactionsPanel({
         animate="show"
       >
         {hasTransactions ? (
-          filteredTransactions.map((transaction, index) => (
+          filteredOriginal.map((transaction, index) => {
+            const isConverted = transaction.currency !== mainCurrency
+            const convertedAmount = isConverted
+              ? convertAmountMinor(
+                  transaction.amountMinor,
+                  transaction.currency,
+                  mainCurrency,
+                  rateMap,
+                )
+              : null
+            const rateFactor = isConverted
+              ? getRateFactor(transaction.currency, mainCurrency, rateMap)
+              : null
+
+            return (
             <motion.div key={transaction.id} variants={itemMotion} layout>
               <div className="group flex items-center gap-1 rounded-md px-2 py-3 transition-colors hover:bg-muted/30">
                 <button
@@ -240,19 +287,30 @@ export function TransactionsPanel({
                         {transaction.note ? ` · ${transaction.note}` : ''}
                       </p>
                     </div>
-                    <p
-                      className={
-                        transaction.type === 'income'
-                          ? 'shrink-0 text-right text-sm font-semibold text-emerald-700 sm:text-base'
-                          : 'shrink-0 text-right text-sm font-semibold sm:text-base'
-                      }
-                    >
-                      {transaction.type === 'income' ? '+' : '-'}
-                      {formatCompactMoney(
-                        transaction.amountMinor,
-                        transaction.currency,
-                      )}
-                    </p>
+                    <div className="shrink-0 text-right">
+                      <p
+                        className={
+                          transaction.type === 'income'
+                            ? 'text-sm font-semibold text-emerald-700 sm:text-base'
+                            : 'text-sm font-semibold sm:text-base'
+                        }
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCompactMoney(
+                          transaction.amountMinor,
+                          transaction.currency,
+                        )}
+                      </p>
+                      {isConverted && convertedAmount !== null ? (
+                        <p
+                          className="text-xs text-muted-foreground"
+                          title={`1 ${transaction.currency} = ${rateFactor?.toFixed(4) ?? '?'} ${mainCurrency}`}
+                        >
+                          ≈{' '}
+                          {formatCompactMoney(convertedAmount, mainCurrency)}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 </button>
                 {onDelete ? (
@@ -279,9 +337,10 @@ export function TransactionsPanel({
                   </Popover>
                 ) : null}
               </div>
-              {index < filteredTransactions.length - 1 ? <Separator /> : null}
+              {index < filteredOriginal.length - 1 ? <Separator /> : null}
             </motion.div>
-          ))
+            )
+          })
         ) : (
           <motion.div
             className="rounded-md border border-dashed bg-muted/20 p-5 text-sm text-muted-foreground"

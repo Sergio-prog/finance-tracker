@@ -34,17 +34,22 @@ The user must generate one from **Settings → API Key** inside the finance trac
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/v1/account` | Profile info (id, email, displayName, defaultCurrency) |
-| `GET` | `/api/v1/dashboard` | Full dump — all categories, transactions, subscriptions, labels |
+| `GET` | `/api/v1/dashboard` | Full dump — all categories, transactions, subscriptions, labels, wishlist |
 | `GET` | `/api/v1/transactions` | List transactions |
 | `GET` | `/api/v1/transactions/:id` | Get one transaction |
 | `POST` | `/api/v1/transactions` | Create a transaction |
+| `PUT` | `/api/v1/transactions/:id` | Update a transaction |
 | `DELETE` | `/api/v1/transactions/:id` | Delete a transaction |
 | `GET` | `/api/v1/categories` | List categories |
+| `GET` | `/api/v1/categories/:id` | Get one category |
 | `POST` | `/api/v1/categories` | Create a category |
 | `GET` | `/api/v1/subscriptions` | List subscriptions |
+| `GET` | `/api/v1/subscriptions/:id` | Get one subscription |
 | `POST` | `/api/v1/subscriptions` | Create a subscription |
+| `PUT` | `/api/v1/subscriptions/:id` | Update a subscription |
 | `DELETE` | `/api/v1/subscriptions/:id` | Delete a subscription |
 | `GET` | `/api/v1/labels` | List labels |
+| `GET` | `/api/v1/labels/:id` | Get one label |
 | `POST` | `/api/v1/labels` | Create a label |
 | `DELETE` | `/api/v1/labels/:id` | Delete a label |
 | `GET` | `/api/v1/wishlist` | List wishlist items |
@@ -53,6 +58,7 @@ The user must generate one from **Settings → API Key** inside the finance trac
 | `PUT` | `/api/v1/wishlist/:id` | Update a wishlist item (including mark bought + create tx) |
 | `DELETE` | `/api/v1/wishlist/:id` | Delete a wishlist item |
 | `GET` | `/api/v1/aggregated?period=month&date=2024-06-01` | Summary + chart points + transactions for a period (`year`, `month`, or `week`; `date` defaults to today) |
+| `GET` | `/api/v1/exchange-rates` | Latest exchange rates (base USD, map of quote→rate) |
 
 POST bodies use the same field names as the CLI flags below. The aggregated endpoint returns `summary.spent/gained` in cents, `chart[].spent/gained` in main units.
 
@@ -86,9 +92,11 @@ FINANCES_API_KEY=ft_abc123 bun run packages/finances-cli/src/index.ts -- <comman
 finances-cli transactions list
 finances-cli transactions get <id>
 finances-cli transactions create [options]
+finances-cli transactions update <id> [options]
 finances-cli transactions delete <id>
 ```
 `create` options: `-t --type` (required), `-c --category-id` (required), `-a --amount` (required), `-C --currency` (required), `-d --date` (required), `-n --note`, `-l --labels` (comma-separated)
+`update` options: same as create but all optional
 
 **categories**
 ```
@@ -103,9 +111,11 @@ finances-cli categories create [options]
 finances-cli subscriptions list
 finances-cli subscriptions get <id>
 finances-cli subscriptions create [options]
+finances-cli subscriptions update <id> [options]
 finances-cli subscriptions delete <id>
 ```
 `create` options: `-n --name` (required), `-a --amount` (required), `-C --currency` (required), `-d --next-charge-date` (required), `-f --frequency`, `-c --category-id`, `-b --billing-day`, `-o --notes`, `--no-auto`
+`update` options: same as create but all optional
 
 **labels**
 ```
@@ -132,6 +142,12 @@ finances-cli wishlist delete <id>
 finances-cli aggregated --period <period> [--date <date>]
 ```
 `-p --period` (required: year, month, week), `-d --date` (optional: YYYY-MM-DD)
+
+**exchange-rates**
+```
+finances-cli exchange-rates
+```
+Returns latest rates (base USD, map of quote→rate).
 
 ### Output
 

@@ -24,6 +24,7 @@ import {
   updateTransaction,
   updateWishlistItem,
 } from './repository'
+import { getExchangeRates } from '../exchange-rates'
 import {
   categoryInput,
   labelInput,
@@ -115,6 +116,14 @@ export const appRouter = t.router({
   revokeApiKey: authenticatedProcedure.mutation(({ ctx }) =>
     revokeApiKey(ctx.user),
   ),
+  exchangeRates: authenticatedProcedure.query(async () => {
+    const rates = await getExchangeRates()
+    return Object.entries(rates).map(([quoteCurrency, rate]) => ({
+      baseCurrency: 'USD',
+      quoteCurrency,
+      rate,
+    }))
+  }),
 })
 
 export type AppRouter = typeof appRouter

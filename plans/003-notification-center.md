@@ -18,7 +18,7 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: direction
-- **Planned at**: commit `d3d7ba8`, 2026-06-15
+- **Planned at**: commit `1433604`, 2026-06-27 (refreshed during reconcile; originally `d3d7ba8`)
 
 ## Why this matters
 
@@ -26,7 +26,11 @@ The `FinanceApp` header already renders a `Bell` notification button (`src/featu
 
 ## Current state
 
-`src/features/finance/FinanceApp.tsx` — header section (lines 137-156):
+`src/features/finance/FinanceApp.tsx` — header section (lines ~140-157).
+Note: plan 001 (PWA) has since added `<InstallPrompt />` as the first child
+of the header's right-side `<div>` (line ~148), before the notifications
+`<Button>`. Place `<BillsPopover />` after the `<InstallPrompt />` and before
+(or alongside) the Bell button. The Bell button itself is unchanged.
 
 ```tsx
 <header className="flex items-center justify-between gap-3 border-b pb-4">

@@ -55,6 +55,7 @@ export function FinanceApp() {
     subscriptions,
     labels,
     wishlistItems,
+    exchangeRates,
     apiKeyInfo,
     isLoading,
     error,
@@ -208,6 +209,8 @@ export function FinanceApp() {
                         ) : (
                           <TransactionsPanel
                             transactions={transactions}
+                            mainCurrency={profile.defaultCurrency}
+                            exchangeRates={exchangeRates}
                             onEdit={setEditingTx}
                             onDelete={deleteTransaction}
                           />

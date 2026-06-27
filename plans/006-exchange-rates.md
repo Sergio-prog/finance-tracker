@@ -18,7 +18,7 @@
 - **Risk**: LOW
 - **Depends on**: none — but for chart normalization to work well, the exchange rate data needs to be populated (via cron job)
 - **Category**: direction
-- **Planned at**: commit `d3d7ba8`, 2026-06-15
+- **Planned at**: commit `1433604`, 2026-06-27 (refreshed during reconcile; originally `d3d7ba8`)
 
 ## Why this matters
 

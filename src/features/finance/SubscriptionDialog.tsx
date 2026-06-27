@@ -207,7 +207,7 @@ export function SubscriptionDialog({
                   className="h-12 px-3 text-lg font-semibold sm:h-14 sm:text-xl"
                 />
               </div>
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 sm:gap-4">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
                 <CategorySelector
                   categories={subscriptionCategories}
                   selectedCategoryId={selectedCategoryId}

@@ -160,4 +160,5 @@ export const dashboardData: DashboardData = {
   subscriptions,
   labels,
   wishlistItems,
+  exchangeRates: [],
 }

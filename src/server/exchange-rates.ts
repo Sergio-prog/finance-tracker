@@ -3,24 +3,36 @@ import { desc, eq, gt } from 'drizzle-orm'
 import { db, hasDatabase } from './db/client'
 import { exchangeRates as exchangeRatesTable } from './db/schema'
 
-const FRANKFURTER_URL = 'https://api.frankfurter.dev/latest'
+const FRANKFURTER_URL = 'https://api.frankfurter.dev/v2/rates'
 const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 export type ExchangeRateMap = Record<string, number>
 
 /**
- * Fetch latest rates from Frankfurter (free, no API key).
+ * Fetch latest rates from Frankfurter v2 (free, no API key).
  * Returns a map of quoteCurrency → rate (1 base = X quote).
  */
 export async function fetchLatestRates(
   baseCurrency: string = 'USD',
 ): Promise<ExchangeRateMap> {
-  const response = await fetch(`${FRANKFURTER_URL}?from=${baseCurrency}`)
+  const response = await fetch(
+    `${FRANKFURTER_URL}?base=${baseCurrency}`,
+  )
   if (!response.ok) {
     throw new Error(`Frankfurter API returned ${response.status}`)
   }
-  const data = (await response.json()) as { rates: Record<string, number> }
-  return data.rates
+  // v2 returns an array of { date, base, quote, rate } objects
+  const rows = (await response.json()) as Array<{
+    date: string
+    base: string
+    quote: string
+    rate: number
+  }>
+  const map: ExchangeRateMap = {}
+  for (const row of rows) {
+    map[row.quote] = row.rate
+  }
+  return map
 }
 
 /** Store fetched rates into the exchange_rates table. */

@@ -14,11 +14,12 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { itemMotion, listMotion, pageMotion } from './animations'
-import { formatMoney } from './format'
+import { formatMoney, buildRateMap, convertAmountMinor } from './format'
 import { SubscriptionDialog } from './SubscriptionDialog'
 import type {
   BillingFrequency,
   Category,
+  ExchangeRateEntry,
   OperationType,
   Subscription,
 } from '@/server/trpc/types'
@@ -26,6 +27,8 @@ import type {
 type SubscriptionsPanelProps = {
   categories: Category[]
   subscriptions: Subscription[]
+  mainCurrency?: string
+  exchangeRates?: ExchangeRateEntry[]
   onCreate: (input: {
     name: string
     categoryId?: string
@@ -62,6 +65,8 @@ type SubscriptionsPanelProps = {
 export function SubscriptionsPanel({
   categories,
   subscriptions,
+  mainCurrency = 'USD',
+  exchangeRates = [],
   onCreate,
   onCreateCategory,
   onEdit,
@@ -70,25 +75,40 @@ export function SubscriptionsPanel({
   onUpdate,
   onCloseDialog,
 }: SubscriptionsPanelProps) {
+  const rateMap = useMemo(
+    () => buildRateMap(exchangeRates),
+    [exchangeRates],
+  )
+
+  const toMain = (s: Subscription) =>
+    s.currency === mainCurrency
+      ? s.amountMinor
+      : (convertAmountMinor(
+          s.amountMinor,
+          s.currency,
+          mainCurrency,
+          rateMap,
+        ) ?? s.amountMinor)
+
   const monthly = useMemo(() => {
     const monthlySum = subscriptions
       .filter((s) => s.status === 'active' && s.billingFrequency === 'monthly')
-      .reduce((sum, s) => sum + s.amountMinor, 0)
+      .reduce((sum, s) => sum + toMain(s), 0)
     const yearlySum = subscriptions
       .filter((s) => s.status === 'active' && s.billingFrequency === 'yearly')
-      .reduce((sum, s) => sum + s.amountMinor, 0)
+      .reduce((sum, s) => sum + toMain(s), 0)
     return monthlySum + Math.round(yearlySum / 12)
-  }, [subscriptions])
+  }, [subscriptions, rateMap, mainCurrency])
 
   const yearly = useMemo(() => {
     const monthlySum = subscriptions
       .filter((s) => s.status === 'active' && s.billingFrequency === 'monthly')
-      .reduce((sum, s) => sum + s.amountMinor, 0)
+      .reduce((sum, s) => sum + toMain(s), 0)
     const yearlySum = subscriptions
       .filter((s) => s.status === 'active' && s.billingFrequency === 'yearly')
-      .reduce((sum, s) => sum + s.amountMinor, 0)
+      .reduce((sum, s) => sum + toMain(s), 0)
     return yearlySum + monthlySum * 12
-  }, [subscriptions])
+  }, [subscriptions, rateMap, mainCurrency])
   const monthlySubs = useMemo(
     () => subscriptions.filter((s) => s.billingFrequency === 'monthly'),
     [subscriptions],
@@ -109,11 +129,11 @@ export function SubscriptionsPanel({
           <div className="mt-2 grid grid-cols-2 gap-3">
             <Metric
               label="Monthly"
-              value={formatMoney(monthly, 'USD')}
+              value={formatMoney(monthly, mainCurrency)}
             />
             <Metric
               label="Yearly"
-              value={formatMoney(yearly, 'USD')}
+              value={formatMoney(yearly, mainCurrency)}
             />
           </div>
         </div>
@@ -147,6 +167,8 @@ export function SubscriptionsPanel({
                 total={monthlySubs.length}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                mainCurrency={mainCurrency}
+                rateMap={rateMap}
               />
             ))}
           </>
@@ -165,6 +187,8 @@ export function SubscriptionsPanel({
                 total={yearlySubs.length}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                mainCurrency={mainCurrency}
+                rateMap={rateMap}
               />
             ))}
           </>
@@ -200,13 +224,26 @@ function SubscriptionItem({
   total,
   onEdit,
   onDelete,
+  mainCurrency,
+  rateMap,
 }: {
   subscription: Subscription
   index: number
   total: number
   onEdit?: (s: Subscription) => void
   onDelete?: (id: string) => Promise<void>
+  mainCurrency: string
+  rateMap: Record<string, number>
 }) {
+  const isConverted = subscription.currency !== mainCurrency
+  const convertedAmount = isConverted
+    ? convertAmountMinor(
+        subscription.amountMinor,
+        subscription.currency,
+        mainCurrency,
+        rateMap,
+      )
+    : null
   return (
     <motion.div variants={itemMotion} layout>
       <div className="group flex items-center gap-1 rounded-md px-2 py-3 transition-colors hover:bg-muted/30">
@@ -232,8 +269,18 @@ function SubscriptionItem({
                 Next charge {subscription.nextChargeDate}
               </p>
             </div>
-            <p className="shrink-0 text-right font-semibold">
-              {formatMoney(subscription.amountMinor, subscription.currency)}
+            <p className="shrink-0 text-right">
+              <span className="font-semibold">
+                {formatMoney(subscription.amountMinor, subscription.currency)}
+              </span>
+              {isConverted && convertedAmount !== null ? (
+                <span
+                  className="block text-xs text-muted-foreground"
+                  title={`1 ${subscription.currency} = ${(convertedAmount / subscription.amountMinor).toFixed(4)} ${mainCurrency}`}
+                >
+                  ≈ {formatMoney(convertedAmount, mainCurrency)}
+                </span>
+              ) : null}
             </p>
           </div>
         </button>

@@ -9,7 +9,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,13 +20,15 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { itemMotion, listMotion, pageMotion } from '@/features/finance/animations'
-import { formatMoney } from '@/features/finance/format'
+import { formatMoney, buildRateMap, convertAmountMinor } from '@/features/finance/format'
 import { WishlistDialog } from './WishlistDialog'
-import type { Category, WishlistItem } from '@/server/trpc/types'
+import type { Category, ExchangeRateEntry, WishlistItem } from '@/server/trpc/types'
 
 type WishlistPanelProps = {
   categories: Category[]
   items: WishlistItem[]
+  mainCurrency?: string
+  exchangeRates?: ExchangeRateEntry[]
   onCreate: (input: {
     title: string
     description?: string
@@ -56,6 +58,8 @@ type WishlistPanelProps = {
 export function WishlistPanel({
   categories,
   items,
+  mainCurrency = 'USD',
+  exchangeRates = [],
   onCreate,
   onUpdate,
   onDelete,
@@ -63,11 +67,25 @@ export function WishlistPanel({
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null)
   const [markingBought, setMarkingBought] = useState<string | null>(null)
 
+  const rateMap = useMemo(
+    () => buildRateMap(exchangeRates),
+    [exchangeRates],
+  )
+
   const active = items.filter((w) => !w.isBought)
   const bought = items.filter((w) => w.isBought)
   const totalValue = items
-    .filter((w) => !w.isBought && w.amountMinor)
-    .reduce((sum, w) => sum + (w.amountMinor ?? 0), 0)
+    .filter((w) => !w.isBought && w.amountMinor && w.currency)
+    .reduce((sum, w) => {
+      if (w.currency === mainCurrency) return sum + (w.amountMinor ?? 0)
+      const converted = convertAmountMinor(
+        w.amountMinor!,
+        w.currency!,
+        mainCurrency,
+        rateMap,
+      )
+      return sum + (converted ?? w.amountMinor ?? 0)
+    }, 0)
 
   async function handleMarkBought(item: WishlistItem, createTx: boolean) {
     setMarkingBought(item.id)
@@ -104,7 +122,7 @@ export function WishlistPanel({
           </p>
           {totalValue > 0 ? (
             <p className="mt-2 text-lg font-semibold tabular-nums sm:text-xl">
-              ~{formatMoney(totalValue, 'USD')} total
+              ~{formatMoney(totalValue, mainCurrency)} total
             </p>
           ) : null}
         </div>
@@ -145,6 +163,8 @@ export function WishlistPanel({
                 onDelete={onDelete}
                 onMarkBought={(createTx) => handleMarkBought(item, createTx)}
                 isMarking={markingBought === item.id}
+                mainCurrency={mainCurrency}
+                rateMap={rateMap}
               />
             ))}
           </>
@@ -166,6 +186,8 @@ export function WishlistPanel({
                 onUnmarkBought={() => handleUnmarkBought(item)}
                 isBought
                 isMarking={markingBought === item.id}
+                mainCurrency={mainCurrency}
+                rateMap={rateMap}
               />
             ))}
           </>
@@ -205,6 +227,8 @@ function WishlistItemRow({
   onUnmarkBought,
   isMarking,
   isBought,
+  mainCurrency,
+  rateMap,
 }: {
   item: WishlistItem
   index: number
@@ -215,7 +239,22 @@ function WishlistItemRow({
   onUnmarkBought?: () => void
   isMarking?: boolean
   isBought?: boolean
+  mainCurrency: string
+  rateMap: Record<string, number>
 }) {
+  const isConverted =
+    !isBought &&
+    item.currency !== null &&
+    item.currency !== mainCurrency
+  const convertedAmount =
+    isConverted && item.amountMinor && item.currency
+      ? convertAmountMinor(
+          item.amountMinor,
+          item.currency,
+          mainCurrency,
+          rateMap,
+        )
+      : null
   return (
     <motion.div variants={itemMotion} layout>
       <div
@@ -257,6 +296,14 @@ function WishlistItemRow({
             {item.amountMinor && item.currency ? (
               <span className="font-medium tabular-nums text-foreground">
                 {formatMoney(item.amountMinor, item.currency)}
+                {isConverted && convertedAmount !== null ? (
+                  <span
+                    className="ml-1 text-xs text-muted-foreground"
+                    title={`1 ${item.currency} = ${(convertedAmount / item.amountMinor!).toFixed(4)} ${mainCurrency}`}
+                  >
+                    ≈ {formatMoney(convertedAmount, mainCurrency)}
+                  </span>
+                ) : null}
               </span>
             ) : null}
             {item.plannedDate ? (

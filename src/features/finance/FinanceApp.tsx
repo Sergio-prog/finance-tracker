@@ -223,6 +223,8 @@ export function FinanceApp() {
                           <SubscriptionsPanel
                             categories={categories}
                             subscriptions={subscriptions}
+                            mainCurrency={profile.defaultCurrency}
+                            exchangeRates={exchangeRates}
                             onCreate={addSubscription}
                             onCreateCategory={addCategory}
                             onEdit={setEditingSub}
@@ -240,6 +242,8 @@ export function FinanceApp() {
                           <WishlistPanel
                             categories={categories}
                             items={wishlistItems}
+                            mainCurrency={profile.defaultCurrency}
+                            exchangeRates={exchangeRates}
                             onCreate={createWishlistItem}
                             onUpdate={updateWishlistItem}
                             onDelete={deleteWishlistItem}

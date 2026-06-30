@@ -299,7 +299,7 @@ function WishlistItemRow({
                 {isConverted && convertedAmount !== null ? (
                   <span
                     className="ml-1 text-xs text-muted-foreground"
-                    title={`1 ${item.currency} = ${(convertedAmount / item.amountMinor!).toFixed(4)} ${mainCurrency}`}
+                    title={`1 ${item.currency} = ${(convertedAmount / item.amountMinor).toFixed(4)} ${mainCurrency}`}
                   >
                     ≈ {formatMoney(convertedAmount, mainCurrency)}
                   </span>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import type {
+  BudgetWithSpending,
   Category,
   DashboardData,
   ExchangeRateEntry,
@@ -19,6 +20,7 @@ export type ApiKeyInfo = {
 
 export function useFinanceData() {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [budgets, setBudgets] = useState<BudgetWithSpending[]>([])
   const [apiKeyInfo, setApiKeyInfo] = useState<ApiKeyInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -31,13 +33,15 @@ export function useFinanceData() {
       setError(null)
 
       try {
-        const [dashboard, keyInfo] = await Promise.all([
+        const [dashboard, keyInfo, loadedBudgets] = await Promise.all([
           trpc.dashboard.query(),
           trpc.getApiKey.query().catch(() => ({ prefix: null, createdAt: null })),
+          trpc.getBudgets.query().catch(() => [] as BudgetWithSpending[]),
         ])
         if (isMounted) {
           setData(dashboard)
           setApiKeyInfo(keyInfo)
+          setBudgets(loadedBudgets)
         }
       } catch (cause) {
         if (isMounted) {
@@ -238,6 +242,24 @@ export function useFinanceData() {
             : current,
         )
       },
+      createBudget: async (
+        input: Parameters<typeof trpc.createBudget.mutate>[0],
+      ) => {
+        await trpc.createBudget.mutate(input)
+        const updated = await trpc.getBudgets.query()
+        setBudgets(updated)
+      },
+      updateBudget: async (
+        input: Parameters<typeof trpc.updateBudget.mutate>[0],
+      ) => {
+        await trpc.updateBudget.mutate(input)
+        const updated = await trpc.getBudgets.query()
+        setBudgets(updated)
+      },
+      deleteBudget: async (id: string) => {
+        await trpc.deleteBudget.mutate({ id })
+        setBudgets((current) => current.filter((b) => b.id !== id))
+      },
     }),
     [],
   )
@@ -249,6 +271,7 @@ export function useFinanceData() {
     subscriptions: data?.subscriptions ?? ([] as Subscription[]),
     labels: data?.labels ?? ([] as Label[]),
     wishlistItems: data?.wishlistItems ?? ([] as WishlistItem[]),
+    budgets,
     exchangeRates: data?.exchangeRates ?? ([] as ExchangeRateEntry[]),
     apiKeyInfo,
     isLoading,

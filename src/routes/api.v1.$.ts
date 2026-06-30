@@ -14,16 +14,20 @@ import {
   summarizeTransactions,
 } from '@/server/aggregations'
 import {
+  createBudget,
   createCategory,
   createLabel,
   createSubscription,
   createTransaction,
   createWishlistItem,
+  deleteBudget,
   deleteLabel,
   deleteSubscription,
   deleteTransaction,
   deleteWishlistItem,
+  getBudgets,
   getDashboard,
+  updateBudget,
   updateSubscription,
   updateTransaction,
   updateWishlistItem,
@@ -31,6 +35,8 @@ import {
 } from '@/server/trpc/repository'
 import { getExchangeRates } from '@/server/exchange-rates'
 import {
+  budgetInput,
+  budgetUpdate,
   categoryInput,
   labelInput,
   subscriptionInput,
@@ -322,6 +328,34 @@ async function handleApiRequest(request: Request) {
           baseCurrency: 'USD',
           rates,
         })
+      }
+
+      case 'budgets': {
+        if (request.method === 'GET') {
+          const budgets = await getBudgets(user)
+          return json({ budgets })
+        }
+
+        if (request.method === 'POST') {
+          const body = await request.json()
+          const validated = budgetInput.parse(body)
+          const created = await createBudget(user, validated)
+          return json(created, 201)
+        }
+
+        if (request.method === 'PUT' && id) {
+          const body = await request.json()
+          const validated = budgetUpdate.parse({ ...body, id })
+          const updated = await updateBudget(user, validated)
+          return json(updated)
+        }
+
+        if (request.method === 'DELETE' && id) {
+          await deleteBudget(user, id)
+          return json({ deleted: id })
+        }
+
+        break
       }
     }
 

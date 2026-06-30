@@ -1,11 +1,12 @@
 import { createHash, randomBytes } from 'node:crypto'
 
-import { and, desc, eq, lte } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, lte, sum } from 'drizzle-orm'
 import { TRPCError } from '@trpc/server'
 
 import { db, hasDatabase } from '../db/client'
 import {
   apiKeys as apiKeysTable,
+  budgets as budgetsTable,
   categories as categoriesTable,
   labels as labelsTable,
   profiles as profilesTable,
@@ -16,6 +17,8 @@ import {
 import { ensureFreshRates } from '../exchange-rates'
 import type { AuthUser } from '../auth'
 import type {
+  Budget,
+  BudgetWithSpending,
   Category,
   DashboardData,
   ExchangeRateEntry,
@@ -26,6 +29,8 @@ import type {
   WishlistItem,
 } from './types'
 import type {
+  budgetInput,
+  budgetUpdate,
   categoryInput,
   labelInput,
   profileInput,
@@ -983,6 +988,177 @@ export async function deleteWishlistItem(user: AuthUser, itemId: string) {
     .delete(wishlistItemsTable)
     .where(
       and(eq(wishlistItemsTable.id, itemId), eq(wishlistItemsTable.userId, user.id)),
+    )
+}
+
+async function computeBudgetSpending(
+  database: ReturnType<typeof assertDatabase>,
+  userId: string,
+  budget: { categoryId: string; startDate: string },
+): Promise<number> {
+  const today = new Date().toISOString().slice(0, 10)
+  const rows = await database
+    .select({ spent: sum(transactionsTable.amountMinor) })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.userId, userId),
+        eq(transactionsTable.categoryId, budget.categoryId),
+        eq(transactionsTable.type, 'expense'),
+        gte(transactionsTable.operationDate, budget.startDate),
+        lte(transactionsTable.operationDate, today),
+      ),
+    )
+  return Number(rows[0]?.spent ?? 0)
+}
+
+export async function createBudget(
+  user: AuthUser,
+  input: z.infer<typeof budgetInput>,
+): Promise<Budget> {
+  const database = assertDatabase()
+
+  const [category] = await database
+    .select()
+    .from(categoriesTable)
+    .where(
+      and(
+        eq(categoriesTable.id, input.categoryId),
+        eq(categoriesTable.userId, user.id),
+      ),
+    )
+    .limit(1)
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!category) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' })
+  }
+
+  const [created] = await database
+    .insert(budgetsTable)
+    .values({
+      userId: user.id,
+      categoryId: input.categoryId,
+      amountLimit: Math.round(input.amountLimit * 100),
+      period: input.period,
+      startDate: input.startDate,
+    })
+    .returning()
+
+  return {
+    id: created.id,
+    categoryId: created.categoryId,
+    categoryName: category.name,
+    categoryIcon: category.icon,
+    amountLimit: created.amountLimit,
+    period: created.period as 'monthly' | 'yearly',
+    startDate: created.startDate,
+  }
+}
+
+export async function getBudgets(user: AuthUser): Promise<BudgetWithSpending[]> {
+  const database = assertDatabase()
+
+  const budgetRows = await database
+    .select()
+    .from(budgetsTable)
+    .where(eq(budgetsTable.userId, user.id))
+
+  if (budgetRows.length === 0) return []
+
+  const categoryIds = budgetRows.map((b) => b.categoryId)
+  const categoryRows = await database
+    .select()
+    .from(categoriesTable)
+    .where(inArray(categoriesTable.id, categoryIds))
+
+  const categoryMap = new Map(categoryRows.map((c) => [c.id, c]))
+
+  return Promise.all(
+    budgetRows.map(async (budget): Promise<BudgetWithSpending> => {
+      const category = categoryMap.get(budget.categoryId)
+      const spent = await computeBudgetSpending(database, user.id, budget)
+      const percentage =
+        budget.amountLimit > 0
+          ? Math.min(100, Math.round((spent / budget.amountLimit) * 100))
+          : 0
+
+      return {
+        id: budget.id,
+        categoryId: budget.categoryId,
+        categoryName: category?.name ?? 'Unknown',
+        categoryIcon: category?.icon ?? '•',
+        amountLimit: budget.amountLimit,
+        period: budget.period as 'monthly' | 'yearly',
+        startDate: budget.startDate,
+        spent,
+        percentage,
+      }
+    }),
+  )
+}
+
+export async function updateBudget(
+  user: AuthUser,
+  input: z.infer<typeof budgetUpdate>,
+): Promise<BudgetWithSpending> {
+  const database = assertDatabase()
+
+  const values: Record<string, unknown> = { updatedAt: new Date() }
+  if (input.amountLimit !== undefined) {
+    values.amountLimit = Math.round(input.amountLimit * 100)
+  }
+  if (input.period !== undefined) values.period = input.period
+  if (input.startDate !== undefined) values.startDate = input.startDate
+
+  const query = await database
+    .update(budgetsTable)
+    .set(values)
+    .where(
+      and(eq(budgetsTable.id, input.id), eq(budgetsTable.userId, user.id)),
+    )
+    .returning()
+
+  if (query.length === 0) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Budget not found' })
+  }
+
+  const [updated] = query
+
+  const [categoryRow] = await database
+    .select()
+    .from(categoriesTable)
+    .where(eq(categoriesTable.id, updated.categoryId))
+    .limit(1)
+
+  const spent = await computeBudgetSpending(database, user.id, updated)
+  const percentage =
+    updated.amountLimit > 0
+      ? Math.min(100, Math.round((spent / updated.amountLimit) * 100))
+      : 0
+
+  return {
+    id: updated.id,
+    categoryId: updated.categoryId,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    categoryName: categoryRow?.name ?? 'Unknown',
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    categoryIcon: categoryRow?.icon ?? '•',
+    amountLimit: updated.amountLimit,
+    period: updated.period as 'monthly' | 'yearly',
+    startDate: updated.startDate,
+    spent,
+    percentage,
+  }
+}
+
+export async function deleteBudget(user: AuthUser, budgetId: string) {
+  const database = assertDatabase()
+
+  await database
+    .delete(budgetsTable)
+    .where(
+      and(eq(budgetsTable.id, budgetId), eq(budgetsTable.userId, user.id)),
     )
 }
 

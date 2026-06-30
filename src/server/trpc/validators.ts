@@ -90,6 +90,20 @@ export const wishlistItemUpdate = z.object({
   createTransaction: z.boolean().optional(),
 })
 
+export const budgetInput = z.object({
+  categoryId: z.string().min(1),
+  amountLimit: z.coerce.number().positive(),
+  period: z.enum(['monthly', 'yearly']).default('monthly'),
+  startDate: z.string().min(10),
+})
+
+export const budgetUpdate = z.object({
+  id: z.string().min(1),
+  amountLimit: z.coerce.number().positive().optional(),
+  period: z.enum(['monthly', 'yearly']).optional(),
+  startDate: z.string().min(10).optional(),
+})
+
 export const profileInput = z.object({
   defaultCurrency: z.string().min(3).max(3).optional(),
   displayName: z.string().max(60).optional(),

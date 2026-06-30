@@ -5,20 +5,24 @@ import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch'
 import { getAuthUser } from '@/server/auth'
 
 import {
+  createBudget,
   createCategory,
   createLabel,
   createSubscription,
   createTransaction,
   createWishlistItem,
+  deleteBudget,
   deleteLabel,
   deleteSubscription,
   deleteTransaction,
   deleteWishlistItem,
   getApiKeyInfo,
+  getBudgets,
   getDashboard,
   processSubscriptions,
   regenerateApiKey,
   revokeApiKey,
+  updateBudget,
   updateProfile,
   updateSubscription,
   updateTransaction,
@@ -26,6 +30,8 @@ import {
 } from './repository'
 import { getExchangeRates } from '../exchange-rates'
 import {
+  budgetInput,
+  budgetUpdate,
   categoryInput,
   labelInput,
   profileInput,
@@ -124,6 +130,16 @@ export const appRouter = t.router({
       rate,
     }))
   }),
+  getBudgets: authenticatedProcedure.query(({ ctx }) => getBudgets(ctx.user)),
+  createBudget: authenticatedProcedure
+    .input(budgetInput)
+    .mutation(({ ctx, input }) => createBudget(ctx.user, input)),
+  updateBudget: authenticatedProcedure
+    .input(budgetUpdate)
+    .mutation(({ ctx, input }) => updateBudget(ctx.user, input)),
+  deleteBudget: authenticatedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(({ ctx, input }) => deleteBudget(ctx.user, input.id)),
 })
 
 export type AppRouter = typeof appRouter

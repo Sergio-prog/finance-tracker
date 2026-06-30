@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  Bell,
   CreditCard,
   Gift,
   Loader2,
@@ -10,10 +9,10 @@ import {
 import { MotionConfig, motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { pageMotion } from './animations'
+import { BillsPopover } from './BillsPopover'
 import { InstallPrompt } from './InstallPrompt'
 import { OperationDialog } from './OperationDialog'
 import { SettingsPanel } from './SettingsPanel'
@@ -147,13 +146,7 @@ export function FinanceApp() {
               </div>
               <div className="hidden items-center gap-2 md:flex">
                 <InstallPrompt />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Notifications"
-                >
-                  <Bell />
-                </Button>
+                <BillsPopover subscriptions={subscriptions} />
               </div>
             </header>
 

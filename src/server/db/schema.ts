@@ -206,6 +206,31 @@ export const wishlistItems = pgTable(
   ],
 )
 
+export const budgets = pgTable(
+  'budgets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    amountLimit: integer('amount_limit').notNull(),
+    period: text('period').notNull().default('monthly'),
+    startDate: text('start_date').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('budgets_user_category_idx').on(table.userId, table.categoryId),
+  ],
+)
+
 export const exchangeRates = pgTable('exchange_rates', {
   id: uuid('id').primaryKey().defaultRandom(),
   baseCurrency: text('base_currency').notNull(),

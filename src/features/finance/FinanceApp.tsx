@@ -3,6 +3,7 @@ import {
   CreditCard,
   Gift,
   Loader2,
+  PiggyBank,
   ReceiptText,
   Settings,
 } from 'lucide-react'
@@ -24,6 +25,7 @@ import {
   isThemeMode,
   resolveThemeMode,
 } from './theme'
+import { BudgetsPanel } from './BudgetsPanel'
 import { TransactionsPanel } from './TransactionsPanel'
 import { WishlistPanel } from '@/features/wishlist/WishlistPanel'
 import { useFinanceData } from './useFinanceData'
@@ -54,6 +56,7 @@ export function FinanceApp() {
     subscriptions,
     labels,
     wishlistItems,
+    budgets,
     exchangeRates,
     apiKeyInfo,
     isLoading,
@@ -73,6 +76,9 @@ export function FinanceApp() {
     createWishlistItem,
     updateWishlistItem,
     deleteWishlistItem,
+    createBudget,
+    updateBudget,
+    deleteBudget,
   } = useFinanceData()
   const labelOptions = useMemo(
     () => labels.map((label) => label.name),
@@ -166,6 +172,9 @@ export function FinanceApp() {
                     <NavItem value="wishlist" icon={<Gift />}>
                       Wishlist
                     </NavItem>
+                    <NavItem value="budgets" icon={<PiggyBank />}>
+                      Budgets
+                    </NavItem>
                     <NavItem value="settings" icon={<Settings />}>
                       Settings
                     </NavItem>
@@ -243,6 +252,20 @@ export function FinanceApp() {
                           />
                         )}
                       </TabsContent>
+                      <TabsContent value="budgets" className="m-0">
+                        {error ? (
+                          <StatusMessage message={error} />
+                        ) : (
+                          <BudgetsPanel
+                            categories={categories}
+                            budgets={budgets}
+                            mainCurrency={profile.defaultCurrency}
+                            onCreateBudget={createBudget}
+                            onUpdateBudget={updateBudget}
+                            onDeleteBudget={deleteBudget}
+                          />
+                        )}
+                      </TabsContent>
                       <TabsContent value="settings" className="m-0">
                         <SettingsPanel
                           themeMode={themeMode}
@@ -269,7 +292,7 @@ export function FinanceApp() {
               </div>
 
               <nav className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden">
-                <TabsList className="grid w-full grid-cols-4 gap-0 rounded-none bg-transparent p-0">
+                <TabsList className="grid w-full grid-cols-5 gap-0 rounded-none bg-transparent p-0">
                   <TabsTrigger
                     value="transactions"
                     className="flex-col gap-0.5 py-2 data-[state=active]:bg-background"
@@ -290,6 +313,13 @@ export function FinanceApp() {
                   >
                     <Gift className="size-5" />
                     <span className="text-[10px] leading-tight">Wishlist</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="budgets"
+                    className="flex-col gap-0.5 py-2 data-[state=active]:bg-background"
+                  >
+                    <PiggyBank className="size-5" />
+                    <span className="text-[10px] leading-tight">Budgets</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"

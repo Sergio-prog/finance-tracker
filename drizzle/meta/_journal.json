@@ -50,6 +50,13 @@
       "when": 1781134249546,
       "tag": "0006_sticky_ben_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782843065329,
+      "tag": "0007_absurd_cobalt_man",
+      "breakpoints": true
     }
   ]
 }

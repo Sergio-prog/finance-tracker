@@ -77,6 +77,21 @@ export type ExchangeRateEntry = {
   rate: number
 }
 
+export type Budget = {
+  id: string
+  categoryId: string
+  categoryName: string
+  categoryIcon: string
+  amountLimit: number
+  period: 'monthly' | 'yearly'
+  startDate: string
+}
+
+export type BudgetWithSpending = Budget & {
+  spent: number
+  percentage: number
+}
+
 export type DashboardData = {
   profile: Profile
   categories: Category[]

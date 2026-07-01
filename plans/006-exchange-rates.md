@@ -13,12 +13,26 @@
 
 ## Status
 
+- **Status**: DONE — implemented independently (NOT via this plan). **Do not execute.**
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: none — but for chart normalization to work well, the exchange rate data needs to be populated (via cron job)
 - **Category**: direction
 - **Planned at**: commit `1433604`, 2026-06-27 (refreshed during reconcile; originally `d3d7ba8`)
+
+> **Reconcile note (2026-06-30):** Multi-currency exchange rates + conversion
+> shipped in commits `214db16` and `7fbccd1` using a different architecture than
+> this plan specified — a dedicated `src/server/exchange-rates.ts` (Frankfurter
+> fetch, `getExchangeRates`, `ensureFreshRates`, `convertAmount`), an
+> `exchangeRates` tRPC query, and per-row conversion via `format.ts` helpers
+> (`buildRateMap`/`convertAmountMinor`/`getRateFactor`) applied across the
+> Transactions, Subscriptions, and Wishlist panels — rather than the
+> aggregation-level `normalizeAmountMinor` + display toggle described below.
+> The feature is delivered; this plan's grep-based done criteria reference
+> function names (`normalizeAmountMinor`, `fetchAndStoreExchangeRates`) that were
+> never used, so they will not pass. This file is retained as the historical
+> record only.
 
 ## Why this matters
 

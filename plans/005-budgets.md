@@ -9,7 +9,7 @@
 > in the "STOP conditions" section occurs, stop and report — do not improvise.
 > When done, update the status row for this plan in `plans/README.md`.
 
-> **Drift check (run first)**: `git diff --stat d3d7ba8..HEAD -- src/server/db/schema.ts src/server/trpc/ src/routes/api.v1.$.ts`
+> **Drift check (run first)**: `git diff --stat 7fbccd1..HEAD -- src/server/db/schema.ts src/server/trpc/ src/routes/api.v1.$.ts`
 > If any in-scope file changed since this plan was written, compare the
 > "Current state" excerpts against the live code before proceeding; on a
 > mismatch, treat it as a STOP condition.
@@ -21,7 +21,7 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: direction
-- **Planned at**: commit `1433604`, 2026-06-27 (refreshed during reconcile; originally `d3d7ba8`)
+- **Planned at**: commit `7fbccd1`, 2026-06-30 (refreshed during reconcile; originally `d3d7ba8`)
 
 ## Why this matters
 
